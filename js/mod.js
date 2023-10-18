@@ -13,7 +13,7 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "0.1",
+  num: "0.1f",
   name: "Alpha Phase",
 };
 
@@ -22,7 +22,14 @@ let changelog = `<h1>Changelog:</h1><br>
 	- Project start 17/10/2023.<br>
 	- Added alpha layer.<br>
 	- Pretified javascripts.<br>
-	- Added beta layer, added layer reset (thanks escapee), initial push for people to test this.`;
+	- Added beta layer, added layer reset (thanks escapee), initial push for people to test this.<br>
+  <h3>v0.1f</h3>
+  - Fixed beta milestone not working.
+  - Balanced alpha & beta layer.
+  - Added more milestones to beta layer, added more upgrades to beta layer.
+  - Added simulateTime(time) function (copied the function name and idea from Incremental Mass Rewritten)
+  - Added workflows
+  `;
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`;
 
@@ -46,9 +53,9 @@ function getPointGen() {
   let gain = new Decimal(1);
 
   //Alpha
+  if (hasUpgrade("a", 13)) gain = gain.mul(upgradeEffect("a", 13));
   if (hasUpgrade("a", 11)) gain = gain.mul(2);
   if (hasUpgrade("a", 12)) gain = gain.mul(3);
-  if (hasUpgrade("a", 13)) gain = gain.mul(upgradeEffect("a", 13));
   if (hasUpgrade("a", 22)) gain = gain.mul(4);
   if (hasUpgrade("a", 31)) gain = gain.mul(5);
   return gain;

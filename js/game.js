@@ -364,6 +364,17 @@ function hardReset(resetOptions) {
 
 var ticking = false;
 
+var oldOfflineLimit = modInfo.offlineLimit;
+var timeSimulated = 0;
+
+function simulateTime(timeToSimulate) {
+  oldOfflineLimit = modInfo.offlineLimit;
+  if (player.offTime === undefined) player.offTime = { remain: 0 };
+  modInfo.offlineLimit = 1e308;
+  timeSimulated = timeToSimulate;
+  player.offTime.remain += timeSimulated;
+}
+
 var interval = setInterval(function () {
   if (player === undefined || tmp === undefined) return;
   if (ticking) return;
@@ -381,6 +392,9 @@ var interval = setInterval(function () {
     }
     if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined;
   }
+  if (player.offTime === undefined) player.offTime = { remain: 0 };
+  if (player.offTime.remain === 0) modInfo.offlineLimit = oldOfflineLimit;
+  if (player.offTime.remain === 0) player.offTime = undefined;
   if (player.devSpeed) diff *= player.devSpeed;
   player.time = now;
   if (needCanvasUpdate) {

@@ -23,13 +23,18 @@ addLayer("a", {
     // Calculate the multiplier for main currency from bonuses
     mult = new Decimal(1);
     if (hasUpgrade("b", 11)) mult = mult.mul(upgradeEffect("b", 11));
+    if (hasUpgrade("b", 21)) mult = mult.pow(upgradeEffect("b", 21));
     return mult;
   },
   gainExp() {
     // Calculate the exponent on main currency from bonuses
     return new Decimal(1);
   },
-  softcap: new Decimal(30000),
+  softcap() {
+    let value = new Decimal(30000);
+    if (hasUpgrade("b", 21)) value = value.pow(upgradeEffect("b", 21));
+    return value;
+  },
   softcapPower: new Decimal(0.1),
   row: 0, // Row the layer is in on the tree (0 is the first row)
   hotkeys: [
@@ -41,6 +46,11 @@ addLayer("a", {
       },
     },
   ],
+  prestigeButtonText() {
+    let softcapNumber = new Decimal(tmp.a.softcap);
+    let softcapText = new Decimal(tmp.a.resetGain).gte(tmp.a.softcap) || hasUpgrade("b", 21) ? "(Softcapped gain at: " + format(softcapNumber) + ")" : "";
+    return "Reset for +" + format(tmp.a.resetGain, 0) + " alpha points.<br>" + softcapText;
+  },
   passiveGeneration() {
     let value = new Decimal(hasUpgrade("b", 12) ? 1 : 0).mul(0.01).max(0);
     if (hasUpgrade("b", 13)) value = value.mul(upgradeEffect("b", 13));
@@ -58,7 +68,7 @@ addLayer("a", {
 
     // Stage 3, track which main features you want to keep - all upgrades, total points, specific toggles, etc.
     let keep = [];
-    // if (someOtherCondition) keep.push("milestones");
+    if (hasMilestone("b", 0)) keep.push("milestones");
 
     // Stage 4, do the actual data reset
     layerDataReset(this.layer, keep);
@@ -79,17 +89,17 @@ addLayer("a", {
       },
       effectDescription: "Unlock 2nd row of alpha upgrades.",
       unlocked() {
-        return hasUpgrade("a", 13) || player.b.points.gte(1);
+        return hasUpgrade("a", 13) || hasUpgrade("a", 33);
       },
     },
     1: {
-      requirementDescription: "500 Alpha points.",
+      requirementDescription: "5000 Alpha points.",
       done() {
-        return player[this.layer].best.gte(500);
+        return player[this.layer].best.gte(5000);
       },
       effectDescription: "Unlock 3rd row of alpha upgrades.",
       unlocked() {
-        return hasUpgrade("a", 23) || player.b.points.gte(1);
+        return hasUpgrade("a", 23) || hasUpgrade("a", 33);
       },
     },
   },
@@ -102,15 +112,15 @@ addLayer("a", {
     12: {
       title: "Tripler",
       description: "Triples your point gain.",
-      cost: new Decimal(15),
+      cost: new Decimal(10),
       unlocked() {
-        return hasUpgrade("a", 11);
+        return hasUpgrade("a", 11) || hasUpgrade("a", 33);
       },
     },
     13: {
       title: "Additive",
       description: "Every alpha point multiplies point gain by 0.1",
-      cost: new Decimal(30),
+      cost: new Decimal(20),
       effect() {
         let value = new Decimal(1);
         let cap = new Decimal(10);
@@ -137,40 +147,40 @@ addLayer("a", {
         );
       },
       unlocked() {
-        return hasUpgrade("a", 12);
+        return hasUpgrade("a", 12) || hasUpgrade("a", 33);
       },
     },
     21: {
       title: "Depowerer",
       description: "Your total alpha points lowers the softcap power of the 3rd alpha upgrade.",
-      cost: new Decimal(100),
+      cost: new Decimal(1000),
       effect() {
         let value = new Decimal(1);
-        value = value.add(player[this.layer].total.div(100).log(2)).max(1);
+        value = value.add(player[this.layer].total.div(1000).log(2)).max(1);
         return value;
       },
       effectDisplay() {
         return "/" + format(upgradeEffect(this.layer, this.id));
       },
       unlocked() {
-        return hasMilestone("a", 0);
+        return hasMilestone("a", 0) || hasUpgrade("a", 33);
       },
     },
     22: {
       title: "Quadrupler",
       description: "Quadruples your point gain",
-      cost: new Decimal(125),
+      cost: new Decimal(5e3),
       unlocked() {
-        return hasUpgrade("a", 21);
+        return hasUpgrade("a", 21) || hasUpgrade("a", 33);
       },
     },
     23: {
-      title: "Uncapper",
+      title: "Uncapper I",
       description: "Your total alpha points increments the start of the 3rd alpha upgrade softcap.",
-      cost: new Decimal(250),
+      cost: new Decimal(1e5),
       effect() {
         let value = new Decimal(1);
-        value = value.add(player[this.layer].total.div(250).log(5));
+        value = value.add(player[this.layer].total.div(1e5).log(5));
         if (hasUpgrade("a", 32)) value = value.mul(upgradeEffect("a", 32));
         let cap = new Decimal(10);
         let power = new Decimal(0.1);
@@ -181,39 +191,39 @@ addLayer("a", {
         return "+" + format(upgradeEffect(this.layer, this.id));
       },
       unlocked() {
-        return hasUpgrade("a", 22);
+        return hasUpgrade("a", 22) || hasUpgrade("a", 33);
       },
     },
     31: {
       title: "Quintupler",
       description: "Quintuples your point gain",
-      cost: new Decimal(500),
+      cost: new Decimal(2e5),
       unlocked() {
-        return hasMilestone("a", 1);
+        return hasMilestone("a", 1) || hasUpgrade("a", 33);
       },
     },
     32: {
       title: "Uncapper II",
       description: "Multiplies Uncapper by some ammount.",
-      cost: new Decimal(1500),
+      cost: new Decimal(5e5),
       effect() {
         let value = new Decimal(1);
-        value = value.add(player[this.layer].total.div(50000).log(50).add(1));
+        value = value.add(player[this.layer].total.div(5e5).log(50).max(0));
         return value;
       },
       effectDisplay() {
         return "x" + format(upgradeEffect(this.layer, this.id));
       },
       unlocked() {
-        return hasUpgrade("a", 31);
+        return hasUpgrade("a", 31) || hasUpgrade("a", 33);
       },
     },
     33: {
       title: "Betax",
       description: "Unlocks the Beta layer.",
-      cost: new Decimal(3000),
+      cost: new Decimal(1e6),
       unlocked() {
-        return hasUpgrade("a", 32);
+        return hasUpgrade("a", 32) || hasUpgrade("a", 33);
       },
     },
   },

@@ -11,7 +11,7 @@ addLayer("b", {
       keepUpgrades: [33],
     };
   },
-  requires: new Decimal(3000), // Can be a function that takes requirement increases into account
+  requires: new Decimal(1e6), // Can be a function that takes requirement increases into account
   resource: "beta points", // Name of prestige currency
   baseResource: "alpha points", // Name of resource prestige is based on
   baseAmount() {
@@ -22,6 +22,7 @@ addLayer("b", {
   gainMult() {
     // Calculate the multiplier for main currency from bonuses
     mult = new Decimal(1);
+    if (hasUpgrade("b", 22)) mult = mult.add();
     return mult;
   },
   gainExp() {
@@ -44,11 +45,18 @@ addLayer("b", {
   color: "orange",
   milestones: {
     0: {
-      requirementDescription: "100 Beta points.",
+      requirementDescription: "15 Beta points.",
       done() {
-        return player[this.layer].best.gte(100);
+        return player[this.layer].best.gte(15);
       },
-      effectDescription: "Keep alpha millestones on beta reset.",
+      effectDescription: "Keep alpha milestones on beta reset.",
+    },
+    1: {
+      requirementDescription: "20 Beta points.",
+      done() {
+        return player[this.layer].best.gte(20);
+      },
+      effectDescription: "Unlock 2nd row of beta upgrades.",
       unlocked() {
         return hasUpgrade("b", 13);
       },
@@ -94,7 +102,7 @@ addLayer("b", {
     12: {
       title: "Auto Alpha I",
       description: "Generate passively 1% of alpha points on reset.",
-      cost: new Decimal(10),
+      cost: new Decimal(5),
       unlocked() {
         return hasUpgrade("b", 11);
       },
@@ -102,7 +110,7 @@ addLayer("b", {
     13: {
       title: "Auto alpha II",
       description: "Multiply the passive generation of alpha points by 1% of best beta points.",
-      cost: new Decimal(50),
+      cost: new Decimal(10),
       effect() {
         let value = new Decimal(1);
         let layerValue = new Decimal(player.b.best);
@@ -114,6 +122,38 @@ addLayer("b", {
       },
       unlocked() {
         return hasUpgrade("b", 12);
+      },
+    },
+    21: {
+      title: "Alphacap I",
+      description: "Best beta points increases alpha points gain softcap exponentially.",
+      cost: new Decimal(20),
+      effect() {
+        let value = new Decimal(1);
+        let layerValue = new Decimal(player.b.best);
+        value = value.add(layerValue.sqrt(1e6).log(1e6));
+        return value;
+      },
+      effectDisplay() {
+        return "^" + format(upgradeEffect(this.layer, this.id));
+      },
+      unlocked() {
+        return hasMilestone("b", 1);
+      },
+    },
+    22: {
+      title: "Sloggin I",
+      description: "Points multiply beta points gain.",
+      cost: new Decimal(25),
+      effect() {
+        let value = player.points.slog(25).log(25);
+        return value;
+      },
+      effectDisplay() {
+        return "x" + format(upgradeEffect(this.layer, this.id).add(1));
+      },
+      unlocked() {
+        return hasUpgrade("b", 21);
       },
     },
   },
