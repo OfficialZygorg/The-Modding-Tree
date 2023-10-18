@@ -29,6 +29,7 @@ let changelog = `<h1>Changelog:</h1><br>
   - Added more milestones to beta layer, added more upgrades to beta layer.
   - Added simulateTime(time) function (copied the function name and idea from Incremental Mass Rewritten)
   - Added workflows
+  - Disabled alpha milestones popups if you have beta unlocked.
   `;
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`;

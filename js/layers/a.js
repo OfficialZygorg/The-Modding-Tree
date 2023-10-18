@@ -55,6 +55,7 @@ addLayer("a", {
     let value = new Decimal(hasUpgrade("b", 12) ? 1 : 0).mul(0.01).max(0);
     if (hasUpgrade("b", 13)) value = value.mul(upgradeEffect("b", 13));
     if ((value === NaN, undefined)) value = new Decimal(0);
+    if (!hasUpgrade("b", 12)) value = false;
     return value;
   },
   //Code by escapee from The Modding Tree discord https://discord.com/channels/762036407719428096/762071767346839573/1163891655410200689
@@ -81,6 +82,11 @@ addLayer("a", {
   },
   color: "yellow",
   branches: ["b"],
+  milestonePopups() {
+    let popup = true;
+    if (hasUpgrade("a", 33)) popup = false;
+    return popup;
+  },
   milestones: {
     0: {
       requirementDescription: "100 Alpha points.",
