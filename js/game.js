@@ -367,6 +367,7 @@ var ticking = false;
 var oldOfflineLimit = modInfo.offlineLimit;
 var timeSimulated = 0;
 
+//Simulate time cannot be larger than 1e308 or it will NaN/break
 function simulateTime(timeToSimulate) {
   oldOfflineLimit = modInfo.offlineLimit;
   if (player.offTime === undefined) player.offTime = { remain: 0 };
