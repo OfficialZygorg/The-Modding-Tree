@@ -49,7 +49,7 @@ addLayer("b", {
       done() {
         return player[this.layer].best.gte(15);
       },
-      effectDescription: "Keep alpha milestones on beta reset.",
+      effectDescription: "Multiply alpha point gain by best beta points.",
     },
     1: {
       requirementDescription: "20 Beta points.",
@@ -65,7 +65,7 @@ addLayer("b", {
   upgrades: {
     11: {
       title: "Additive II",
-      description: "Every beta point multiplies alpha point gain by 0.1",
+      description: "Each total beta point multiplies alpha point gain by 1",
       cost: new Decimal(1),
       effect() {
         let value = new Decimal(1);
@@ -73,7 +73,7 @@ addLayer("b", {
         let power = new Decimal(0.1);
         // if (hasUpgrade("a", 21)) power = power.mul(upgradeEffect("a", 21)).min(0.9);
         // if (hasUpgrade("a", 23)) cap = cap.add(upgradeEffect("a", 23));
-        value = value.add(player[this.layer].points.mul(0.1));
+        value = value.add(player[this.layer].total);
         value = softcap(value, cap, power);
         return value;
       },
@@ -109,7 +109,7 @@ addLayer("b", {
     },
     13: {
       title: "Auto alpha II",
-      description: "Multiply the passive generation of alpha points by 1% of best beta points.",
+      description: "Multiply the passive generation of alpha points by 1% of best beta points & Auto Alpha I is now 10%.",
       cost: new Decimal(10),
       effect() {
         let value = new Decimal(1);
@@ -156,5 +156,13 @@ addLayer("b", {
         return hasUpgrade("b", 21);
       },
     },
+    // 23: {
+    //   title: "Autoalpha III",
+    //   description: "Autobuy alpha layer upgrades.",
+    //   cost: new Decimal(50),
+    //   unlocked() {
+    //     return hasUpgrade("b", 22);
+    //   },
+    // },
   },
 });

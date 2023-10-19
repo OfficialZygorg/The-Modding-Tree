@@ -23,6 +23,8 @@ addLayer("a", {
     // Calculate the multiplier for main currency from bonuses
     mult = new Decimal(1);
     if (hasUpgrade("b", 11)) mult = mult.mul(upgradeEffect("b", 11));
+    if (hasUpgrade("b", 13)) mult = mult.mul(upgradeEffect("b", 13));
+    if (hasMilestone("b", 0)) mult = mult.mul(player.b.best);
     if (hasUpgrade("b", 21)) mult = mult.pow(upgradeEffect("b", 21));
     return mult;
   },
@@ -46,13 +48,17 @@ addLayer("a", {
       },
     },
   ],
+  autoUpgrade() {
+    if (hasUpgrade("b", 23)) return true;
+  },
   prestigeButtonText() {
-    let softcapNumber = new Decimal(tmp.a.softcap);
-    let softcapText = new Decimal(tmp.a.resetGain).gte(tmp.a.softcap) || hasUpgrade("b", 21) ? "(Softcapped gain at: " + format(softcapNumber) + ")" : "";
-    return "Reset for +" + format(tmp.a.resetGain, 0) + " alpha points.<br>" + softcapText;
+    let nextGain = new Decimal(tmp[this.layer].nextAt);
+    let softcapNumber = new Decimal(tmp[this.layer].softcap);
+    let softcapText = new Decimal(tmp[this.layer].resetGain).gte(tmp[this.layer].softcap) || hasUpgrade("b", 21) ? "(Softcapped gain at: " + format(softcapNumber) + ")" : "";
+    return "Reset for +" + format(tmp[this.layer].resetGain, 0) + " alpha points.<br>" + softcapText + "<br> Next at: " + format(nextGain) + " points";
   },
   passiveGeneration() {
-    let value = new Decimal(hasUpgrade("b", 12) ? 1 : 0).mul(0.01).max(0);
+    let value = new Decimal(hasUpgrade("b", 12) ? 1 : 0).mul(hasUpgrade("b", 13) ? 0.01 : 0.1).max(0);
     if (hasUpgrade("b", 13)) value = value.mul(upgradeEffect("b", 13));
     if ((value === NaN, undefined)) value = new Decimal(0);
     if (!hasUpgrade("b", 12)) value = false;
@@ -124,8 +130,8 @@ addLayer("a", {
       },
     },
     13: {
-      title: "Additive",
-      description: "Every alpha point multiplies point gain by 0.1",
+      title: "Additive I",
+      description: "Each total alpha point multiplies point gain by 0.1",
       cost: new Decimal(20),
       effect() {
         let value = new Decimal(1);
@@ -133,7 +139,7 @@ addLayer("a", {
         let power = new Decimal(0.1);
         if (hasUpgrade("a", 21)) power = power.mul(upgradeEffect("a", 21)).min(0.9);
         if (hasUpgrade("a", 23)) cap = cap.add(upgradeEffect("a", 23));
-        value = value.add(player[this.layer].points.mul(0.1));
+        value = value.add(player[this.layer].total.mul(0.1));
         value = softcap(value, cap, power);
         return value;
       },
@@ -157,19 +163,16 @@ addLayer("a", {
       },
     },
     21: {
-      title: "Depowerer",
-      description: "Your total alpha points lowers the softcap power of the 3rd alpha upgrade.",
+      title: "Depowerer I",
+      description: "Your total alpha points lowers the softcap power of Additive I upgrade.",
       cost: new Decimal(1000),
       effect() {
         let value = new Decimal(1);
-        value = value.add(player[this.layer].total.div(1000).log(2)).max(1);
+        value = value.add(player[this.layer].total.max(1).div(1000).log(2)).max(1);
         return value;
       },
       effectDisplay() {
         return "/" + format(upgradeEffect(this.layer, this.id));
-      },
-      unlocked() {
-        return hasMilestone("a", 0) || hasUpgrade("a", 33);
       },
     },
     22: {
@@ -182,12 +185,12 @@ addLayer("a", {
     },
     23: {
       title: "Uncapper I",
-      description: "Your total alpha points increments the start of the 3rd alpha upgrade softcap.",
+      description: "Your total alpha points increments the start of Additive I softcap.",
       cost: new Decimal(1e5),
       effect() {
         let value = new Decimal(1);
-        value = value.add(player[this.layer].total.div(1e5).log(5));
-        if (hasUpgrade("a", 32)) value = value.mul(upgradeEffect("a", 32));
+        value = value.add(player[this.layer].total.max(1).div(1e5).log(5));
+        if (hasUpgrade("a", 32)) value = value.pow(upgradeEffect("a", 32));
         let cap = new Decimal(10);
         let power = new Decimal(0.1);
         value = softcap(value, cap, power).max(0);
@@ -210,15 +213,15 @@ addLayer("a", {
     },
     32: {
       title: "Uncapper II",
-      description: "Multiplies Uncapper by some ammount.",
+      description: "Increments exponentially Uncapper I by some ammount based on the total alpha points.",
       cost: new Decimal(5e5),
       effect() {
         let value = new Decimal(1);
-        value = value.add(player[this.layer].total.div(5e5).log(50).max(0));
+        value = value.add(player[this.layer].total.max(1).div(5e5).log(50).max(0));
         return value;
       },
       effectDisplay() {
-        return "x" + format(upgradeEffect(this.layer, this.id));
+        return "^" + format(upgradeEffect(this.layer, this.id));
       },
       unlocked() {
         return hasUpgrade("a", 31) || hasUpgrade("a", 33);

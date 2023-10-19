@@ -22,14 +22,16 @@ let changelog = `<h1>Changelog:</h1><br>
 	- Project start 17/10/2023.<br>
 	- Added alpha layer.<br>
 	- Pretified javascripts.<br>
-	- Added beta layer, added layer reset (thanks escapee), initial push for people to test this.<br>
-  <h3>v0.1f</h3>
-  - Fixed beta milestone not working.
-  - Balanced alpha & beta layer.
-  - Added more milestones to beta layer, added more upgrades to beta layer.
-  - Added simulateTime(time) function (copied the function name and idea from Incremental Mass Rewritten)
-  - Added workflows
-  - Disabled alpha milestones popups if you have beta unlocked.
+	- Added beta layer, added layer reset (thanks escapee), initial push for people to test this.<br><br>
+  <h3>v0.1f</h3><br>
+  - Fixed beta milestone not working.<br>
+  - Balanced alpha & beta layer.<br>
+  - Added more milestones to beta layer, added more upgrades to beta layer.<br>
+  - Added simulateTime(time) function (copied the function name and idea from Incremental Mass Rewritten).<br>
+  - Added workflows.<br>
+  - Disabled alpha milestones popups if you have beta unlocked.<br>
+  - Balanced alpha & beta layer again.<br>
+  - Modified beta layer milestones & upgrades.
   `;
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`;
@@ -72,7 +74,7 @@ var displayThings = [];
 
 // Determines when the game "ends"
 function isEndgame() {
-  return player.points.gte(new Decimal("e280000000"));
+  return player.points.gte(new Decimal("ee308"));
 }
 
 // Less important things beyond this point!
