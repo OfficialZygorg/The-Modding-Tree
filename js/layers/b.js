@@ -8,7 +8,6 @@ addLayer("b", {
       points: new Decimal(0),
       best: new Decimal(0),
       total: new Decimal(0),
-      keepUpgrades: [33],
     };
   },
   requires: new Decimal(5e5), // Can be a function that takes requirement increases into account
@@ -58,6 +57,25 @@ addLayer("b", {
     let softcapText = new Decimal(tmp[this.layer].resetGain).gte(tmp[this.layer].softcap) || hasUpgrade("b", 21) ? "(Softcapped gain at: " + format(softcapNumber) + ")" : "";
     return "Reset for +" + format(tmp[this.layer].resetGain, 0) + " alpha points.<br>" + softcapText + "<br> Next at: " + format(nextGain) + " points" + capText;
   },
+  //Code by escapee from The Modding Tree discord https://discord.com/channels/762036407719428096/762071767346839573/1163891655410200689
+  doReset(resettingLayer) {
+    // Stage 1, almost always needed, makes resetting this layer not delete your progress
+    if (layers[resettingLayer].row <= this.row) return;
+
+    // Stage 2, track which specific subfeatures you want to keep, e.g. Upgrade 11, Challenge 32, Buyable 12
+    let keptUpgrades = [];
+    // if (hasUpgrade(this.layer, 33)) keptUpgrades.push(33);
+
+    // Stage 3, track which main features you want to keep - all upgrades, total points, specific toggles, etc.
+    let keep = [];
+    // if (hasUpgrade("a", 33)) keep.push("milestones");
+
+    // Stage 4, do the actual data reset
+    layerDataReset(this.layer, keep);
+
+    // Stage 5, add back in the specific subfeatures you saved earlier
+    player[this.layer].upgrades.push(...keptUpgrades);
+  },
   componentStyles: {
     "prestige-button"() {
       if (challengeCompletions("b", 11) < 1 && player.b.points.gte(50000)) return { height: "200px" };
@@ -74,7 +92,7 @@ addLayer("b", {
     0: {
       requirementDescription: "15 Beta points.",
       done() {
-        return player[this.layer].best.gte(15);
+        return player[this.layer].points.gte(15);
       },
       effectDescription() {
         let text = "Multiply Alpha point gain by best Beta points.";
@@ -85,7 +103,7 @@ addLayer("b", {
     1: {
       requirementDescription: "20 Beta points.",
       done() {
-        return player[this.layer].best.gte(20);
+        return player[this.layer].points.gte(20);
       },
       effectDescription: "Unlock 2nd row of Beta upgrades.",
       unlocked() {
@@ -95,12 +113,13 @@ addLayer("b", {
     2: {
       requirementDescription: "2000 Beta points.",
       done() {
-        return player[this.layer].best.gte(2000);
+        return player[this.layer].points.gte(2000);
       },
       effectDescription: "Auto buy Alpha layer upgrades.",
       unlocked() {
         return hasUpgrade("b", 23);
       },
+      toggles: [["a", "autoBuy"]],
     },
   },
   challenges: {

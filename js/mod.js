@@ -13,7 +13,7 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "0.2",
+  num: "0.2b",
   name: "Alpha Phase",
 };
 
@@ -36,7 +36,9 @@ let changelog = `<h1>Changelog:</h1><br>
   <h3>v0.2</h3><br>
   - Added Beta challenge & balanced Beta gain requirements.<br>
   - Balanced some Beta upgrades.<br>
-  - Putted the math formulas into the upgrades descriptions.<br>
+  - Putted the math formulas into the upgrades descriptions.<br><br>
+  <h3>v0.2b</h3><br>
+  - Made a toggle for the 3rd Beta milestone.<br>
   `;
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`;

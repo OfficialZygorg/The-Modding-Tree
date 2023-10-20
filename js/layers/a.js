@@ -60,9 +60,6 @@ addLayer("a", {
       },
     },
   ],
-  autoUpgrade() {
-    if (hasUpgrade("b", 23)) return true;
-  },
   prestigeButtonText() {
     let nextGain = new Decimal(tmp[this.layer].nextAt);
     let softcapNumber = new Decimal(tmp[this.layer].softcap);
@@ -89,11 +86,12 @@ addLayer("a", {
 
     // Stage 2, track which specific subfeatures you want to keep, e.g. Upgrade 11, Challenge 32, Buyable 12
     let keptUpgrades = [];
-    if (hasUpgrade(this.layer, 33)) keptUpgrades.push(33);
+    if (hasUpgrade(this.layer, 33)) keptUpgrades.push("Buyable", 33);
 
     // Stage 3, track which main features you want to keep - all upgrades, total points, specific toggles, etc.
     let keep = [];
     if (hasUpgrade("a", 33)) keep.push("milestones");
+    if (hasMilestone("b", 2)) keep.push("autoBuy");
 
     // Stage 4, do the actual data reset
     layerDataReset(this.layer, keep);
@@ -112,13 +110,13 @@ addLayer("a", {
     return popup;
   },
   autoUpgrade() {
-    if (hasMilestone("b", 2)) return true;
+    if (hasMilestone("b", 2)) return player[this.layer].autoBuy;
   },
   milestones: {
     0: {
       requirementDescription: "100 Alpha points.",
       done() {
-        return player[this.layer].best.gte(100);
+        return player[this.layer].points.gte(100);
       },
       effectDescription: "Unlock 2nd row of Alpha upgrades.",
       unlocked() {
@@ -128,7 +126,7 @@ addLayer("a", {
     1: {
       requirementDescription: "5000 Alpha points.",
       done() {
-        return player[this.layer].best.gte(5000);
+        return player[this.layer].points.gte(5000);
       },
       effectDescription: "Unlock 3rd row of Alpha upgrades.",
       unlocked() {
