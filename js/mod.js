@@ -13,7 +13,7 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "0.1f",
+  num: "0.2",
   name: "Alpha Phase",
 };
 
@@ -32,6 +32,11 @@ let changelog = `<h1>Changelog:</h1><br>
   - Disabled alpha milestones popups if you have beta unlocked.<br>
   - Balanced alpha & beta layer again.<br>
   - Modified beta layer milestones & upgrades.
+  - Prettify upgrades descriptions.<br><br>
+  <h3>v0.2</h3><br>
+  - Added Beta challenge & balanced Beta gain requirements.<br>
+  - Balanced some Beta upgrades.<br>
+  - Putted the math formulas into the upgrades descriptions.<br>
   `;
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`;
@@ -57,10 +62,10 @@ function getPointGen() {
 
   //Alpha
   if (hasUpgrade("a", 13)) gain = gain.mul(upgradeEffect("a", 13));
-  if (hasUpgrade("a", 11)) gain = gain.mul(2);
-  if (hasUpgrade("a", 12)) gain = gain.mul(3);
-  if (hasUpgrade("a", 22)) gain = gain.mul(4);
-  if (hasUpgrade("a", 31)) gain = gain.mul(5);
+  if (hasUpgrade("a", 11)) gain = gain.mul(upgradeEffect("a", 11));
+  if (hasUpgrade("a", 12)) gain = gain.mul(upgradeEffect("a", 12));
+  if (hasUpgrade("a", 22)) gain = gain.mul(upgradeEffect("a", 22));
+  if (hasUpgrade("a", 31)) gain = gain.mul(upgradeEffect("a", 31));
   return gain;
 }
 

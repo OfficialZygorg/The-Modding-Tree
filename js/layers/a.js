@@ -11,7 +11,12 @@ addLayer("a", {
       autoBuy: false,
     };
   },
-  requires: new Decimal(10), // Can be a function that takes requirement increases into account
+  requires() {
+    let value = new Decimal(10);
+    let bChallenge1 = new Decimal(challengeCompletions("b", 11)).add(1).pow(2);
+    if (inChallenge("b", 11)) value = value.mul(bChallenge1);
+    return value;
+  }, // Can be a function that takes requirement increases into account
   resource: "alpha points", // Name of prestige currency
   baseResource: "points", // Name of resource prestige is based on
   baseAmount() {
@@ -21,10 +26,14 @@ addLayer("a", {
   exponent: 0.9, // Prestige currency exponent
   gainMult() {
     // Calculate the multiplier for main currency from bonuses
-    mult = new Decimal(1);
+    let mult = new Decimal(1);
     if (hasUpgrade("b", 11)) mult = mult.mul(upgradeEffect("b", 11));
     if (hasUpgrade("b", 13)) mult = mult.mul(upgradeEffect("b", 13));
-    if (hasMilestone("b", 0)) mult = mult.mul(player.b.best);
+    if (hasMilestone("b", 0)) {
+      let value = player.b.best;
+      if (inChallenge("b", 11)) value = new Decimal(1);
+      mult = mult.mul(value);
+    }
     if (hasUpgrade("b", 21)) mult = mult.pow(upgradeEffect("b", 21));
     return mult;
   },
@@ -34,7 +43,10 @@ addLayer("a", {
   },
   softcap() {
     let value = new Decimal(30000);
+    let bChallenge1 = new Decimal(challengeCompletions("b", 11)).add(1);
     if (hasUpgrade("b", 21)) value = value.pow(upgradeEffect("b", 21));
+    if (challengeCompletions("b", 11) > 0) value = value.mul(bChallenge1);
+    if (inChallenge("b", 11)) return new Decimal(30000).mul(bChallenge1);
     return value;
   },
   softcapPower: new Decimal(0.1),
@@ -42,7 +54,7 @@ addLayer("a", {
   hotkeys: [
     {
       key: "a",
-      description: "A: Reset for alpha points",
+      description: "A: Reset for Alpha points",
       onPress() {
         if (canReset(this.layer)) doReset(this.layer);
       },
@@ -57,11 +69,17 @@ addLayer("a", {
     let softcapText = new Decimal(tmp[this.layer].resetGain).gte(tmp[this.layer].softcap) || hasUpgrade("b", 21) ? "(Softcapped gain at: " + format(softcapNumber) + ")" : "";
     return "Reset for +" + format(tmp[this.layer].resetGain, 0) + " alpha points.<br>" + softcapText + "<br> Next at: " + format(nextGain) + " points";
   },
+  componentStyles: {
+    upgrade() {
+      return { width: "130px" };
+    },
+  },
   passiveGeneration() {
-    let value = new Decimal(hasUpgrade("b", 12) ? 1 : 0).mul(hasUpgrade("b", 13) ? 0.01 : 0.1).max(0);
+    let value = new Decimal(0);
+    if (hasUpgrade("b", 12)) value = value.add(upgradeEffect("b", 12));
     if (hasUpgrade("b", 13)) value = value.mul(upgradeEffect("b", 13));
-    if ((value === NaN, undefined)) value = new Decimal(0);
     if (!hasUpgrade("b", 12)) value = false;
+    if (inChallenge("b", 11)) return false;
     return value;
   },
   //Code by escapee from The Modding Tree discord https://discord.com/channels/762036407719428096/762071767346839573/1163891655410200689
@@ -75,7 +93,7 @@ addLayer("a", {
 
     // Stage 3, track which main features you want to keep - all upgrades, total points, specific toggles, etc.
     let keep = [];
-    if (hasMilestone("b", 0)) keep.push("milestones");
+    if (hasUpgrade("a", 33)) keep.push("milestones");
 
     // Stage 4, do the actual data reset
     layerDataReset(this.layer, keep);
@@ -93,13 +111,16 @@ addLayer("a", {
     if (hasUpgrade("a", 33)) popup = false;
     return popup;
   },
+  autoUpgrade() {
+    if (hasMilestone("b", 2)) return true;
+  },
   milestones: {
     0: {
       requirementDescription: "100 Alpha points.",
       done() {
         return player[this.layer].best.gte(100);
       },
-      effectDescription: "Unlock 2nd row of alpha upgrades.",
+      effectDescription: "Unlock 2nd row of Alpha upgrades.",
       unlocked() {
         return hasUpgrade("a", 13) || hasUpgrade("a", 33);
       },
@@ -109,7 +130,7 @@ addLayer("a", {
       done() {
         return player[this.layer].best.gte(5000);
       },
-      effectDescription: "Unlock 3rd row of alpha upgrades.",
+      effectDescription: "Unlock 3rd row of Alpha upgrades.",
       unlocked() {
         return hasUpgrade("a", 23) || hasUpgrade("a", 33);
       },
@@ -118,20 +139,46 @@ addLayer("a", {
   upgrades: {
     11: {
       title: "Doubler",
-      description: "Double your point gain.",
-      cost: new Decimal(5),
+      description() {
+        let text = "Double your point gain.";
+        if (inChallenge("b", 11)) text = "Disabled.";
+        return text;
+      },
+      cost() {
+        let value = new Decimal(5);
+        if (inChallenge("b", 11)) value = new Decimal(Infinity);
+        return value;
+      },
+      effect() {
+        let value = new Decimal(2);
+        if (inChallenge("b", 11)) value = new Decimal(1);
+        return value;
+      },
     },
     12: {
       title: "Tripler",
-      description: "Triples your point gain.",
-      cost: new Decimal(10),
+      description() {
+        let text = "Triples your point gain.";
+        if (inChallenge("b", 11)) text = "Disabled.";
+        return text;
+      },
+      cost() {
+        let value = new Decimal(10);
+        if (inChallenge("b", 11)) value = new Decimal(Infinity);
+        return value;
+      },
       unlocked() {
         return hasUpgrade("a", 11) || hasUpgrade("a", 33);
+      },
+      effect() {
+        let value = new Decimal(3);
+        if (inChallenge("b", 11)) value = new Decimal(1);
+        return value;
       },
     },
     13: {
       title: "Additive I",
-      description: "Each total alpha point multiplies point gain by 0.1",
+      description: "Each total Alpha point multiplies point gain by 0.1",
       cost: new Decimal(20),
       effect() {
         let value = new Decimal(1);
@@ -139,11 +186,13 @@ addLayer("a", {
         let power = new Decimal(0.1);
         if (hasUpgrade("a", 21)) power = power.mul(upgradeEffect("a", 21)).min(0.9);
         if (hasUpgrade("a", 23)) cap = cap.add(upgradeEffect("a", 23));
+        if (challengeCompletions("b", 11) > 0) cap = cap.mul(challengeEffect("b", 11));
         value = value.add(player[this.layer].total.mul(0.1));
         value = softcap(value, cap, power);
         return value;
       },
       effectDisplay() {
+        let bChal1Effect = challengeCompletions("b", 11) > 0 ? new Decimal(challengeEffect("b", 11)) : new Decimal(1);
         return (
           format(upgradeEffect(this.layer, this.id)) +
           "x" +
@@ -153,7 +202,7 @@ addLayer("a", {
               format(new Decimal(0.1).mul(1000).div(hasUpgrade("a", 21) ? upgradeEffect("a", 21) : 1)) +
               "%)<br>" +
               "(Softcap starts at: x" +
-              format(new Decimal(10).add(hasUpgrade("a", 23) ? upgradeEffect("a", 23) : 0)) +
+              format(new Decimal(10).add(hasUpgrade("a", 23) ? upgradeEffect("a", 23) : 0).mul(bChal1Effect)) +
               ")"
             : "")
         );
@@ -164,28 +213,53 @@ addLayer("a", {
     },
     21: {
       title: "Depowerer I",
-      description: "Your total alpha points lowers the softcap power of Additive I upgrade.",
-      cost: new Decimal(1000),
+      description() {
+        let text = "Your total Alpha points lowers the softcap power of Additive I upgrade.";
+        // if (inChallenge("b", 11)) text = "Disabled.";
+        return text;
+      },
+      cost() {
+        let value = new Decimal(1000);
+        // if (inChallenge("b", 11)) value = new Decimal(Infinity);
+        return value;
+      },
       effect() {
         let value = new Decimal(1);
         value = value.add(player[this.layer].total.max(1).div(1000).log(2)).max(1);
+        // if (inChallenge("b", 11)) value = new Decimal(1);
         return value;
       },
       effectDisplay() {
-        return "/" + format(upgradeEffect(this.layer, this.id));
+        let text = `/${format(upgradeEffect(this.layer, this.id))}<br>
+        (totalPoints/1000)log(2)`;
+        // if (inChallenge("b", 11)) text = "Disabled.";
+        return text;
       },
     },
     22: {
       title: "Quadrupler",
-      description: "Quadruples your point gain",
-      cost: new Decimal(5e3),
+      description() {
+        let text = "Quadruples your point gain";
+        if (inChallenge("b", 11)) text = "Disabled.";
+        return text;
+      },
+      cost() {
+        let value = new Decimal(5e3);
+        if (inChallenge("b", 11)) value = new Decimal(Infinity);
+        return value;
+      },
       unlocked() {
         return hasUpgrade("a", 21) || hasUpgrade("a", 33);
+      },
+      effect() {
+        let value = new Decimal(4);
+        if (inChallenge("b", 11)) value = new Decimal(1);
+        return value;
       },
     },
     23: {
       title: "Uncapper I",
-      description: "Your total alpha points increments the start of Additive I softcap.",
+      description: "Your total Alpha points increments the start of Additive I softcap.",
       cost: new Decimal(1e5),
       effect() {
         let value = new Decimal(1);
@@ -197,7 +271,9 @@ addLayer("a", {
         return value;
       },
       effectDisplay() {
-        return "+" + format(upgradeEffect(this.layer, this.id));
+        return `+${format(upgradeEffect(this.layer, this.id))}<br>
+        (totalAlpha/1e5)log(5)
+        `;
       },
       unlocked() {
         return hasUpgrade("a", 22) || hasUpgrade("a", 33);
@@ -205,23 +281,47 @@ addLayer("a", {
     },
     31: {
       title: "Quintupler",
-      description: "Quintuples your point gain",
-      cost: new Decimal(2e5),
+      description() {
+        let text = "Quintuples your point gain";
+        if (inChallenge("b", 11)) text = "Disabled.";
+        return text;
+      },
+      cost() {
+        let value = new Decimal(2e5);
+        if (inChallenge("b", 11)) value = new Decimal(Infinity);
+        return value;
+      },
       unlocked() {
         return hasMilestone("a", 1) || hasUpgrade("a", 33);
+      },
+      effect() {
+        let value = new Decimal(5);
+        if (inChallenge("b", 11)) value = new Decimal(1);
+        return value;
       },
     },
     32: {
       title: "Uncapper II",
-      description: "Increments exponentially Uncapper I by some ammount based on the total alpha points.",
-      cost: new Decimal(5e5),
+      description() {
+        let text = "Increments exponentially Uncapper I by some ammount based on the total Alpha points.";
+        if (inChallenge("b", 11)) text = "Disabled.";
+        return text;
+      },
+      cost() {
+        let value = new Decimal(5e5);
+        if (inChallenge("b", 11)) value = new Decimal(Infinity);
+        return value;
+      },
       effect() {
         let value = new Decimal(1);
         value = value.add(player[this.layer].total.max(1).div(5e5).log(50).max(0));
+        if (inChallenge("b", 11)) value = new Decimal(1);
         return value;
       },
       effectDisplay() {
-        return "^" + format(upgradeEffect(this.layer, this.id));
+        let text = "^" + format(upgradeEffect(this.layer, this.id));
+        if (inChallenge("b", 11)) text = "";
+        return text;
       },
       unlocked() {
         return hasUpgrade("a", 31) || hasUpgrade("a", 33);
@@ -229,8 +329,8 @@ addLayer("a", {
     },
     33: {
       title: "Betax",
-      description: "Unlocks the Beta layer.",
-      cost: new Decimal(1e6),
+      description: "Unlocks the Beta layer & keep Alpha Milestones.",
+      // cost: new Decimal(1e6),
       unlocked() {
         return hasUpgrade("a", 32) || hasUpgrade("a", 33);
       },
