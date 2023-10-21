@@ -3,7 +3,7 @@ let modInfo = {
   id: "abctree",
   author: "Zygorg",
   pointsName: "points",
-  modFiles: ["layers/a.js", "layers/b.js", "tree.js"],
+  modFiles: ["layers/a.js", "layers/b.js", "layers/c.js", "tree.js"],
 
   discordName: "",
   discordLink: "",
@@ -13,7 +13,7 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-  num: "0.2b",
+  num: "0.3",
   name: "Alpha Phase",
 };
 
@@ -39,6 +39,13 @@ let changelog = `<h1>Changelog:</h1><br>
   - Putted the math formulas into the upgrades descriptions.<br><br>
   <h3>v0.2b</h3><br>
   - Made a toggle for the 3rd Beta milestone.<br>
+  - Beta challenge reward doesnt affect Additive I while in challenge.<br><br>
+  <h3>v0.3</h3><br>
+  - Added more upgrades to Beta layer & balanced Beta challenge 1 debuff.<br>
+  - Added C (Charlie) layer.<br>
+  - Balanced some B layer upgrade costs.<br>
+  - Removed the math formulas from upgrade descriptions.
+  - Added some C layer upgrades.
   `;
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`;

@@ -3,7 +3,7 @@ var layoutInfo = {
   startNavTab: "tree-tab",
   showTree: true,
 
-  treeLayout: [["a"], ["b"]],
+  treeLayout: [["a"], ["b", "c"]],
 };
 
 // A "ghost" layer which offsets other layers in the tree

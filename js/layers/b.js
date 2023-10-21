@@ -47,7 +47,7 @@ addLayer("b", {
     },
   ],
   prestigeButtonText() {
-    let nextGain = !player.b.points.gte(50000) ? new Decimal(tmp[this.layer].nextAt) : new Decimal(Infinity);
+    let nextGain = !player.b.points.gte(50000) || challengeCompletions("b", 11) != 0 ? new Decimal(tmp[this.layer].nextAt) : new Decimal(Infinity);
     let softcapNumber = new Decimal(tmp[this.layer].softcap);
     let points = new Decimal(player[this.layer].points);
     let capText =
@@ -55,7 +55,7 @@ addLayer("b", {
         ? "<br><br>If Beta Challenge 1 isnt completed at least 1 time, Beta points, best and total will be capped at 50000.<br>Also, the softcap becomes 0."
         : "";
     let softcapText = new Decimal(tmp[this.layer].resetGain).gte(tmp[this.layer].softcap) || hasUpgrade("b", 21) ? "(Softcapped gain at: " + format(softcapNumber) + ")" : "";
-    return "Reset for +" + format(tmp[this.layer].resetGain, 0) + " alpha points.<br>" + softcapText + "<br> Next at: " + format(nextGain) + " points" + capText;
+    return "Reset for +" + format(tmp[this.layer].resetGain, 0) + " alpha points.<br>" + softcapText + "<br> Next at: " + format(nextGain) + " alpha points" + capText;
   },
   //Code by escapee from The Modding Tree discord https://discord.com/channels/762036407719428096/762071767346839573/1163891655410200689
   doReset(resettingLayer) {
@@ -65,10 +65,11 @@ addLayer("b", {
     // Stage 2, track which specific subfeatures you want to keep, e.g. Upgrade 11, Challenge 32, Buyable 12
     let keptUpgrades = [];
     // if (hasUpgrade(this.layer, 33)) keptUpgrades.push(33);
+    // if (hasUpgrade(this.layer, 41)) keptUpgrades.push("Buyable", 12, 41);
 
     // Stage 3, track which main features you want to keep - all upgrades, total points, specific toggles, etc.
     let keep = [];
-    // if (hasUpgrade("a", 33)) keep.push("milestones");
+    // if (hasUpgrade(this.layer, 41)) keep.push("milestones", 1, 2);
 
     // Stage 4, do the actual data reset
     layerDataReset(this.layer, keep);
@@ -81,7 +82,7 @@ addLayer("b", {
       if (challengeCompletions("b", 11) < 1 && player.b.points.gte(50000)) return { height: "200px" };
     },
     challenge() {
-      return { height: "500px", width: "350px", "border-radius": "75px" };
+      return { height: "500px", width: "350px", "border-radius": "50px" };
     },
   },
   layerShown() {
@@ -128,20 +129,31 @@ addLayer("b", {
       fullDisplay() {
         let chalGoal = new Decimal(challengeCompletions("b", 11)).add(1);
         let goalText = new Decimal(2000).mul(chalGoal);
-        let chalEffect = new Decimal(10).pow(new Decimal(challengeCompletions("b", 11)).max(1));
-        chalEffect = chalEffect.mul(chalEffect);
-        let debuff = new Decimal(challengeCompletions("b", 11)).add(1).pow(2);
+        let chalEffect = challengeEffect("b", 11);
+        let debuff = new Decimal(1);
+        let BChal1Comps = new Decimal(challengeCompletions("b", 11)).mul(0.1);
+        debuff = debuff.add(BChal1Comps);
+        let soft = new Decimal(1).add(new Decimal(challengeCompletions("b", 11)));
         return (
           `
-        -On entering: Most of Alpha/Beta upgrades/milestones are disabled.<br>Disabled upgrades cannot be bought.<br>Alpha softcap cannot go beyond 30000.<br>Alpha passive generation is disabled.<br>Alpha point requirement is multiplied by (completions+1)^2.<br><br>
-        -Reward: Each completion multiplies Additive I softcap start by (10^completions)*itself , unlock 3rd row of Beta upgrades at 1st completion.<br><br>
+        -On entering: Most of Alpha/Beta upgrades/milestones are disabled.<br>
+        Disabled upgrades cannot be bought.<br>
+        Alpha softcap cannot go beyond 30000.<br>
+        Alpha passive generation is disabled.<br>
+        Alpha point requirement is exponentiated by 0.1 per completion.<br>
+        1st reward effect while in challenge is x1<br><br>
+        -Reward: Each completion multiplies Additive I softcap start by (10^completions)*itself.<br>
+        -Unlock 3rd row of Beta upgrades at 1st completion.<br>
+        -Alpha point gain softcap is multiplied by completions+1<br><br>
         -Goal is multiplied by completions+1.<br>
         Goal: ` +
           format(goalText) +
           `<br>
         Completions: ${challengeCompletions("b", 11)}/10<br>
-        Effect: x${format(chalEffect)} to Additive I softcap start.<br>
-        Debuff in challenge: x${format(debuff)} to Alpha point requirement.
+        Effects:<br>
+        x${format(chalEffect)} to Additive I softcap start.<br>
+        x${format(soft)} to Alpha point gain softcap.<br>
+        Debuff in challenge: ^${format(debuff)} to Alpha point requirement.
         `
         );
       },
@@ -166,6 +178,7 @@ addLayer("b", {
         let eff = new Decimal(challengeCompletions("b", 11)).max(1);
         value = value.pow(eff);
         value = value.mul(value);
+        if (inChallenge("b", 11)) value = new Decimal(1);
         return value;
       },
       unlocked() {
@@ -259,7 +272,7 @@ addLayer("b", {
         return value;
       },
       effectDisplay() {
-        let text = `^${format(upgradeEffect(this.layer, this.id))}<br>(1+betaTotal)log(1e5)`;
+        let text = `^${format(upgradeEffect(this.layer, this.id))}`;
         if (inChallenge("b", 11)) text = "";
         return text;
       },
@@ -276,7 +289,7 @@ addLayer("b", {
         return value;
       },
       effectDisplay() {
-        return `x${format(upgradeEffect(this.layer, this.id).max(1))}<br>(points)slog(500)`;
+        return `x${format(upgradeEffect(this.layer, this.id).max(1))}`;
       },
       unlocked() {
         return hasUpgrade("b", 21);
@@ -293,7 +306,7 @@ addLayer("b", {
     31: {
       title: "Alphacap II",
       description() {
-        let text = "Multiply Alphacap I by Beta Challenge 1 completions.";
+        let text = "Multiply Alphacap I by Beta Challenge 1 [completions+1].";
         if (inChallenge("b", 11)) text = "Disabled.";
         return text;
       },
@@ -308,12 +321,62 @@ addLayer("b", {
         return value;
       },
       effectDisplay() {
-        let text = `x${format(upgradeEffect(this.layer, this.id))}<br>BCh1Comp+1`;
+        let text = `x${format(upgradeEffect(this.layer, this.id))}`;
         if (inChallenge("b", 11)) text = "";
         return text;
       },
       unlocked() {
         return challengeCompletions("b", 11) >= 1;
+      },
+    },
+    32: {
+      title: "Betacap I",
+      description: "Beta challenge 1 [completions+1] multiply Beta point gain softcap.",
+      cost: new Decimal(1.5e5),
+      effect() {
+        let value = new Decimal(challengeCompletions("b", 11)).add(1);
+        return value;
+      },
+      effectDisplay() {
+        return `x${format(upgradeEffect("b", 32))}`;
+      },
+      unlocked() {
+        return hasUpgrade("b", 31);
+      },
+    },
+    33: {
+      title: "Vitamin B I",
+      description: "Each total Beta point multiplies Beta point gain by 2.",
+      cost: new Decimal(2e5),
+      effect() {
+        let value = new Decimal(1);
+        let cap = new Decimal(10);
+        let power = new Decimal(0.1);
+        value = value.add(player[this.layer].total).mul(2);
+        if (getBuyableAmount("c", 11).gt(0)) cap = cap.mul(buyableEffect("c", 11));
+        value = softcap(value, cap, power);
+        if (inChallenge("b", 11)) return new Decimal(1);
+        return value;
+      },
+      effectDisplay() {
+        let softcapPower = new Decimal(0.1).mul(1000);
+        if (getBuyableAmount("c", 11).gt(0)) softcapPower = softcapPower.div(buyableEffect("c", 11));
+        let text =
+          format(upgradeEffect(this.layer, this.id)) +
+          "x" +
+          (upgradeEffect(this.layer, this.id).gte(10) ? " (Softcapped)<br>" + "(Softcap Power: " + format(softcapPower) + "%)<br>" + "(Softcap starts at: x" + format(new Decimal(10)) + ")" : "");
+        if (inChallenge("b", 11)) text = "";
+        return text;
+      },
+      unlocked() {
+        return hasUpgrade("b", 32);
+      },
+    },
+    41: {
+      title: "Charliex",
+      description: "Unlock Charlie layer.",
+      unlocked() {
+        return hasUpgrade("b", 33);
       },
     },
   },

@@ -13,8 +13,10 @@ addLayer("a", {
   },
   requires() {
     let value = new Decimal(10);
-    let bChallenge1 = new Decimal(challengeCompletions("b", 11)).add(1).pow(2);
-    if (inChallenge("b", 11)) value = value.mul(bChallenge1);
+    let nerf = new Decimal(1);
+    let bChallenge1 = new Decimal(challengeCompletions("b", 11)).mul(0.1);
+    nerf = nerf.add(bChallenge1);
+    if (inChallenge("b", 11)) value = value.pow(nerf);
     return value;
   }, // Can be a function that takes requirement increases into account
   resource: "alpha points", // Name of prestige currency
@@ -103,7 +105,7 @@ addLayer("a", {
     return true;
   },
   color: "yellow",
-  branches: ["b"],
+  branches: ["b", "c"],
   milestonePopups() {
     let popup = true;
     if (hasUpgrade("a", 33)) popup = false;
@@ -228,8 +230,7 @@ addLayer("a", {
         return value;
       },
       effectDisplay() {
-        let text = `/${format(upgradeEffect(this.layer, this.id))}<br>
-        (totalPoints/1000)log(2)`;
+        let text = `/${format(upgradeEffect(this.layer, this.id))}`;
         // if (inChallenge("b", 11)) text = "Disabled.";
         return text;
       },
@@ -269,9 +270,7 @@ addLayer("a", {
         return value;
       },
       effectDisplay() {
-        return `+${format(upgradeEffect(this.layer, this.id))}<br>
-        (totalAlpha/1e5)log(5)
-        `;
+        return `+${format(upgradeEffect(this.layer, this.id))}`;
       },
       unlocked() {
         return hasUpgrade("a", 22) || hasUpgrade("a", 33);
