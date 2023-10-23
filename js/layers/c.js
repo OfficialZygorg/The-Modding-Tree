@@ -76,6 +76,7 @@ addLayer("c", {
       cost(x) {
         let current = x.add(1);
         let cost = new Decimal(50).mul(current);
+        if (buyableEffect(this.layer, this.id).gte(100)) return new Decimal(Infinity);
         return cost;
       },
       title: "B: Depowerer II",
@@ -85,7 +86,7 @@ addLayer("c", {
         return `Divide Vitamin B I softcap power by bought amount + 1<br>
         Cost: ${format(cost)}
         Effect: /${format(buyableEffect("c", 11))} ${capped}
-        Bought: ${getBuyableAmount("c", 11)}/10`;
+        Bought: ${getBuyableAmount("c", 11)}`;
       },
       canAfford() {
         return player[this.layer].points.gte(this.cost());
