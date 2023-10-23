@@ -138,7 +138,7 @@ addLayer("a", {
   },
   upgrades: {
     11: {
-      title: "Doubler",
+      title: "Point: Doubler",
       description() {
         let text = "Double your point gain.";
         if (inChallenge("b", 11)) text = "Disabled.";
@@ -156,7 +156,7 @@ addLayer("a", {
       },
     },
     12: {
-      title: "Tripler",
+      title: "Point: Tripler",
       description() {
         let text = "Triples your point gain.";
         if (inChallenge("b", 11)) text = "Disabled.";
@@ -177,7 +177,7 @@ addLayer("a", {
       },
     },
     13: {
-      title: "Additive I",
+      title: "A: Additive I",
       description: "Each total Alpha point multiplies point gain by 0.1",
       cost: new Decimal(20),
       effect() {
@@ -212,9 +212,9 @@ addLayer("a", {
       },
     },
     21: {
-      title: "Depowerer I",
+      title: "A: Depowerer I",
       description() {
-        let text = "Your total Alpha points lowers the softcap power of Additive I upgrade.";
+        let text = "Your total Alpha points divides the softcap power of Additive I upgrade by some amount.";
         // if (inChallenge("b", 11)) text = "Disabled.";
         return text;
       },
@@ -225,18 +225,19 @@ addLayer("a", {
       },
       effect() {
         let value = new Decimal(1);
-        value = value.add(player[this.layer].total.max(1).div(1000).log(2)).max(1);
+        value = value.add(player[this.layer].total.max(1).div(1000).log(2)).max(1).min(100);
         // if (inChallenge("b", 11)) value = new Decimal(1);
         return value;
       },
       effectDisplay() {
-        let text = `/${format(upgradeEffect(this.layer, this.id))}`;
+        let capped = upgradeEffect(this.layer, this.id).gte(100) ? "(Capped)" : "";
+        let text = `/${format(upgradeEffect(this.layer, this.id))} ${capped}`;
         // if (inChallenge("b", 11)) text = "Disabled.";
         return text;
       },
     },
     22: {
-      title: "Quadrupler",
+      title: "Point: Quadrupler",
       description() {
         let text = "Quadruples your point gain";
         if (inChallenge("b", 11)) text = "Disabled.";
@@ -257,7 +258,7 @@ addLayer("a", {
       },
     },
     23: {
-      title: "Uncapper I",
+      title: "A: Uncapper I",
       description: "Your total Alpha points increments the start of Additive I softcap.",
       cost: new Decimal(1e5),
       effect() {
@@ -277,7 +278,7 @@ addLayer("a", {
       },
     },
     31: {
-      title: "Quintupler",
+      title: "Point: Quintupler",
       description() {
         let text = "Quintuples your point gain";
         if (inChallenge("b", 11)) text = "Disabled.";
@@ -298,7 +299,7 @@ addLayer("a", {
       },
     },
     32: {
-      title: "Uncapper II",
+      title: "A: Uncapper II",
       description() {
         let text = "Increments exponentially Uncapper I by some ammount based on the total Alpha points.";
         if (inChallenge("b", 11)) text = "Disabled.";
@@ -325,7 +326,7 @@ addLayer("a", {
       },
     },
     33: {
-      title: "Betax",
+      title: "B: Betax",
       description: "Unlocks the Beta layer & keep Alpha Milestones.",
       // cost: new Decimal(1e6),
       unlocked() {

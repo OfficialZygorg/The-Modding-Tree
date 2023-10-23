@@ -74,15 +74,17 @@ addLayer("c", {
   buyables: {
     11: {
       cost(x) {
-        let next = x.max(1);
-        return new Decimal(50).mul(next);
+        let current = x.add(1);
+        let cost = new Decimal(50).mul(current);
+        return cost;
       },
-      title: "Depowerer II",
+      title: "B: Depowerer II",
       display() {
         let cost = new Decimal(tmp.c.buyables[11].cost);
+        let capped = buyableEffect(this.layer, this.id).gte(100) ? "(Capped)" : "";
         return `Divide Vitamin B I softcap power by bought amount + 1<br>
         Cost: ${format(cost)}
-        Effect: /${format(buyableEffect("c", 11))}
+        Effect: /${format(buyableEffect("c", 11))} ${capped}
         Bought: ${getBuyableAmount("c", 11)}/10`;
       },
       canAfford() {
@@ -100,10 +102,11 @@ addLayer("c", {
     },
     12: {
       cost(x) {
-        let next = x.max(1);
-        return new Decimal(75).mul(next);
+        let current = x.add(1);
+        let cost = new Decimal(75).mul(current);
+        return cost;
       },
-      title: "Uncapper III",
+      title: "B: Uncapper III",
       display() {
         let cost = new Decimal(tmp.c.buyables[12].cost);
         return `Multiply Vitamin B I softcap start by bought amount + 1<br>

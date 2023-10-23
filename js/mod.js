@@ -11,43 +11,6 @@ let modInfo = {
   offlineLimit: 0, // In hours
 };
 
-// Set your version in num and name
-let VERSION = {
-  num: "0.3",
-  name: "Alpha Phase",
-};
-
-let changelog = `<h1>Changelog:</h1><br>
-	<h3>v0.1</h3><br>
-	- Project start 17/10/2023.<br>
-	- Added alpha layer.<br>
-	- Pretified javascripts.<br>
-	- Added beta layer, added layer reset (thanks escapee), initial push for people to test this.<br><br>
-  <h3>v0.1f</h3><br>
-  - Fixed beta milestone not working.<br>
-  - Balanced alpha & beta layer.<br>
-  - Added more milestones to beta layer, added more upgrades to beta layer.<br>
-  - Added simulateTime(time) function (copied the function name and idea from Incremental Mass Rewritten).<br>
-  - Added workflows.<br>
-  - Disabled alpha milestones popups if you have beta unlocked.<br>
-  - Balanced alpha & beta layer again.<br>
-  - Modified beta layer milestones & upgrades.
-  - Prettify upgrades descriptions.<br><br>
-  <h3>v0.2</h3><br>
-  - Added Beta challenge & balanced Beta gain requirements.<br>
-  - Balanced some Beta upgrades.<br>
-  - Putted the math formulas into the upgrades descriptions.<br><br>
-  <h3>v0.2b</h3><br>
-  - Made a toggle for the 3rd Beta milestone.<br>
-  - Beta challenge reward doesnt affect Additive I while in challenge.<br><br>
-  <h3>v0.3</h3><br>
-  - Added more upgrades to Beta layer & balanced Beta challenge 1 debuff.<br>
-  - Added C (Charlie) layer.<br>
-  - Balanced some B layer upgrade costs.<br>
-  - Removed the math formulas from upgrade descriptions.
-  - Added some C layer upgrades.
-  `;
-
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`;
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
@@ -104,3 +67,45 @@ function maxTickLength() {
 // Use this if you need to undo inflation from an older version. If the version is older than the version that fixed the issue,
 // you can cap their current resources with this.
 function fixOldSave(oldVersion) {}
+
+// Set your version in num and name
+let VERSION = {
+  num: "0.3b",
+  name: "Alpha Phase",
+};
+
+let changelog = `<h1>Changelog:</h1><br>
+	<h3>v0.1</h3><br>
+	- Project start 17/10/2023.<br>
+	- Added alpha layer.<br>
+	- Pretified javascripts.<br>
+	- Added beta layer, added layer reset (thanks escapee), initial push for people to test this.<br><br>
+  <h3>v0.1f</h3><br>
+  - Fixed beta milestone not working.<br>
+  - Balanced alpha & beta layer.<br>
+  - Added more milestones to beta layer, added more upgrades to beta layer.<br>
+  - Added simulateTime(time) function (copied the function name and idea from Incremental Mass Rewritten).<br>
+  - Added workflows.<br>
+  - Disabled alpha milestones popups if you have beta unlocked.<br>
+  - Balanced alpha & beta layer again.<br>
+  - Modified beta layer milestones & upgrades.
+  - Prettify upgrades descriptions.<br><br>
+  <h3>v0.2</h3><br>
+  - Added Beta challenge & balanced Beta gain requirements.<br>
+  - Balanced some Beta upgrades.<br>
+  - Putted the math formulas into the upgrades descriptions.<br><br>
+  <h3>v0.2b</h3><br>
+  - Made a toggle for the 3rd Beta milestone.<br>
+  - Beta challenge reward doesnt affect Additive I while in challenge.<br><br>
+  <h3>v0.3</h3><br>
+  - Added more upgrades to Beta layer & balanced Beta challenge 1 debuff.<br>
+  - Added C (Charlie) layer.<br>
+  - Balanced some B layer upgrade costs.<br>
+  - Removed the math formulas from upgrade descriptions.
+  - Added some C layer upgrades.<br><br>
+  <h3>v0.3b</h3><br>
+  - Adjusted upgrades names for easier understanding.<br>
+  - Modified B Challenge 1 description.<br>
+  - Modified C upgrades cost formulas soo the more you have, the more it costs.<br>
+  - Fixed some upgrades.
+  `;

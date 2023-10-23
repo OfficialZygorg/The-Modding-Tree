@@ -82,7 +82,7 @@ addLayer("b", {
       if (challengeCompletions("b", 11) < 1 && player.b.points.gte(50000)) return { height: "200px" };
     },
     challenge() {
-      return { height: "500px", width: "350px", "border-radius": "50px" };
+      return { height: "550px", width: "350px", "border-radius": "25px" };
     },
   },
   layerShown() {
@@ -125,7 +125,7 @@ addLayer("b", {
   },
   challenges: {
     11: {
-      name: "Knucle Punch",
+      name: `B: Challenge I<br>A: Knucle Punch`,
       fullDisplay() {
         let chalGoal = new Decimal(challengeCompletions("b", 11)).add(1);
         let goalText = new Decimal(2000).mul(chalGoal);
@@ -138,7 +138,7 @@ addLayer("b", {
           `
         -On entering: Most of Alpha/Beta upgrades/milestones are disabled.<br>
         Disabled upgrades cannot be bought.<br>
-        Alpha softcap cannot go beyond 30000.<br>
+        Alpha softcap cannot go beyond 30000 (Anything before this challenge cant affect it).<br>
         Alpha passive generation is disabled.<br>
         Alpha point requirement is exponentiated by 0.1 per completion.<br>
         1st reward effect while in challenge is x1<br><br>
@@ -188,7 +188,7 @@ addLayer("b", {
   },
   upgrades: {
     11: {
-      title: "Additive II",
+      title: "A: Additive II",
       description() {
         let text = "Each total Beta point multiplies Alpha point gain by 1";
         if (inChallenge("b", 11)) text = "Disabled.";
@@ -216,7 +216,7 @@ addLayer("b", {
       },
     },
     12: {
-      title: "Auto Alpha I",
+      title: "A: Auto Alpha I",
       description: "Generate passively 1% of Alpha points on reset.",
       cost: new Decimal(5),
       unlocked() {
@@ -233,7 +233,7 @@ addLayer("b", {
       },
     },
     13: {
-      title: "Auto alpha II",
+      title: "A: Auto alpha II",
       description() {
         let text = "Multiply the passive generation of Alpha points by 1% of best beta points & Auto Alpha I is now 10%.";
         if (inChallenge("b", 11)) text = "Disabled.";
@@ -257,7 +257,7 @@ addLayer("b", {
       },
     },
     21: {
-      title: "Alphacap I",
+      title: "A: Alphacap I",
       description() {
         let text = "Total Beta points increases Alpha points gain softcap exponentially.";
         if (inChallenge("b", 11)) text = "Disabled.";
@@ -281,7 +281,7 @@ addLayer("b", {
       },
     },
     22: {
-      title: "Sloggin I",
+      title: "B: Sloggin I",
       description: "Points multiply Beta points gain.",
       cost: new Decimal(500),
       effect() {
@@ -296,7 +296,7 @@ addLayer("b", {
       },
     },
     23: {
-      title: "Challenger",
+      title: "B: Challenger I",
       description: "Unlock the 1st Beta challenge.",
       cost: new Decimal(1000),
       unlocked() {
@@ -304,9 +304,9 @@ addLayer("b", {
       },
     },
     31: {
-      title: "Alphacap II",
+      title: "A: Alphacap II",
       description() {
-        let text = "Multiply Alphacap I by Beta Challenge 1 [completions+1].";
+        let text = "Multiply Alphacap I by Beta Challenge 1 completions + 1.";
         if (inChallenge("b", 11)) text = "Disabled.";
         return text;
       },
@@ -330,8 +330,8 @@ addLayer("b", {
       },
     },
     32: {
-      title: "Betacap I",
-      description: "Beta challenge 1 [completions+1] multiply Beta point gain softcap.",
+      title: "B: Betacap I",
+      description: "Beta challenge 1 completions + 1 multiply Beta point gain softcap.",
       cost: new Decimal(1.5e5),
       effect() {
         let value = new Decimal(challengeCompletions("b", 11)).add(1);
@@ -345,7 +345,7 @@ addLayer("b", {
       },
     },
     33: {
-      title: "Vitamin B I",
+      title: "B: Vitamin B I",
       description: "Each total Beta point multiplies Beta point gain by 2.",
       cost: new Decimal(2e5),
       effect() {
@@ -373,7 +373,7 @@ addLayer("b", {
       },
     },
     41: {
-      title: "Charliex",
+      title: "C: Charliex",
       description: "Unlock Charlie layer.",
       unlocked() {
         return hasUpgrade("b", 33);
