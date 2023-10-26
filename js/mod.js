@@ -33,9 +33,9 @@ function getPointGen() {
   let gain = new Decimal(1);
 
   //Alpha
-  if (hasUpgrade("a", 13)) gain = gain.mul(upgradeEffect("a", 13));
   if (hasUpgrade("a", 11)) gain = gain.mul(upgradeEffect("a", 11));
   if (hasUpgrade("a", 12)) gain = gain.mul(upgradeEffect("a", 12));
+  if (hasUpgrade("a", 13)) gain = gain.mul(upgradeEffect("a", 13));
   if (hasUpgrade("a", 22)) gain = gain.mul(upgradeEffect("a", 22));
   if (hasUpgrade("a", 31)) gain = gain.mul(upgradeEffect("a", 31));
   return gain;
@@ -70,17 +70,36 @@ function fixOldSave(oldVersion) {}
 
 // Set your version in num and name
 let VERSION = {
-  num: "0.3b",
+  num: "0.4",
   name: "Alpha Phase",
 };
 
-let changelog = `<h1>Changelog:</h1><br>
-	<h3>v0.1</h3><br>
-	- Project start 17/10/2023.<br>
-	- Added alpha layer.<br>
-	- Pretified javascripts.<br>
-	- Added beta layer, added layer reset (thanks escapee), initial push for people to test this.<br><br>
-  <h3>v0.1f</h3><br>
+let changelog = `
+<h1>Changelog:</h1><br>
+<h3>v0.4</h3><br>
+  - Added more C layer upgrades.
+  - Added more softcaps for the layers.
+  - Moved softcap boxes.
+  - Added functions to make softcap stuff easier & other functions (new functions are in easyAccess.js)
+<h3>v0.3b</h3><br>
+  - Adjusted upgrades names for easier understanding.<br>
+  - Modified B Challenge 1 description.<br>
+  - Modified C upgrades cost formulas soo the more you have, the more it costs.<br>
+  - Fixed some upgrades.
+<h3>v0.3</h3><br>
+  - Added more upgrades to Beta layer & balanced Beta challenge 1 debuff.<br>
+  - Added C (Charlie) layer.<br>
+  - Balanced some B layer upgrade costs.<br>
+  - Removed the math formulas from upgrade descriptions.
+  - Added some C layer upgrades.<br><br>
+<h3>v0.2b</h3><br>
+  - Made a toggle for the 3rd Beta milestone.<br>
+  - Beta challenge reward doesnt affect Additive I while in challenge.<br><br>
+<h3>v0.2</h3><br>
+  - Added Beta challenge & balanced Beta gain requirements.<br>
+  - Balanced some Beta upgrades.<br>
+  - Putted the math formulas into the upgrades descriptions.<br><br>
+<h3>v0.1f</h3><br>
   - Fixed beta milestone not working.<br>
   - Balanced alpha & beta layer.<br>
   - Added more milestones to beta layer, added more upgrades to beta layer.<br>
@@ -90,22 +109,9 @@ let changelog = `<h1>Changelog:</h1><br>
   - Balanced alpha & beta layer again.<br>
   - Modified beta layer milestones & upgrades.
   - Prettify upgrades descriptions.<br><br>
-  <h3>v0.2</h3><br>
-  - Added Beta challenge & balanced Beta gain requirements.<br>
-  - Balanced some Beta upgrades.<br>
-  - Putted the math formulas into the upgrades descriptions.<br><br>
-  <h3>v0.2b</h3><br>
-  - Made a toggle for the 3rd Beta milestone.<br>
-  - Beta challenge reward doesnt affect Additive I while in challenge.<br><br>
-  <h3>v0.3</h3><br>
-  - Added more upgrades to Beta layer & balanced Beta challenge 1 debuff.<br>
-  - Added C (Charlie) layer.<br>
-  - Balanced some B layer upgrade costs.<br>
-  - Removed the math formulas from upgrade descriptions.
-  - Added some C layer upgrades.<br><br>
-  <h3>v0.3b</h3><br>
-  - Adjusted upgrades names for easier understanding.<br>
-  - Modified B Challenge 1 description.<br>
-  - Modified C upgrades cost formulas soo the more you have, the more it costs.<br>
-  - Fixed some upgrades.
+	<h3>v0.1</h3><br>
+	- Project start 17/10/2023.<br>
+	- Added alpha layer.<br>
+	- Pretified javascripts.<br>
+	- Added beta layer, added layer reset (thanks escapee), initial push for people to test this.<br><br>
   `;

@@ -9,6 +9,8 @@ addLayer("a", {
       best: new Decimal(0),
       total: new Decimal(0),
       autoBuy: false,
+      softcap2: D(9e10),
+      softcap3: D(1e22),
     };
   },
   requires() {
@@ -51,7 +53,12 @@ addLayer("a", {
     if (inChallenge("b", 11)) return new Decimal(30000).mul(bChallenge1);
     return value;
   },
-  softcapPower: new Decimal(0.1),
+  softcapPower() {
+    let power = new Decimal(0.1);
+    if (getLayerSoftcapAble(this.layer, 2)) power = power.pow(1.1);
+    if (getLayerSoftcapAble(this.layer, 3)) power = power.pow(1.1);
+    return power;
+  },
   row: 0, // Row the layer is in on the tree (0 is the first row)
   hotkeys: [
     {
@@ -62,11 +69,26 @@ addLayer("a", {
       },
     },
   ],
+  infoboxes: {
+    lore: {
+      title: "Softcaps",
+      unlocked() {
+        return getLayerSoftcapAble(this.layer) || hasUpgrade("b", 21);
+      },
+      body() {
+        let softcapText = getLayerSoftcapAble(this.layer) || hasUpgrade("b", 21) ? `(Softcapped gain at: ${format(getLayerSoftcap(this.layer))})<br>` : "";
+        let softcapText2 = getLayerSoftcapAble(this.layer, 2) ? `(Softcapped^2 gain at: ${format(getLayerSoftcap(this.layer, 2))})<br>` : "";
+        let softcapText3 = getLayerSoftcapAble(this.layer, 3) ? `(Softcapped^3 gain at: ${format(getLayerSoftcap(this.layer, 3))})<br>` : "";
+        let stext = softcapText + softcapText2 + softcapText3;
+        return `${stext}`;
+      },
+    },
+  },
   prestigeButtonText() {
     let nextGain = new Decimal(tmp[this.layer].nextAt);
-    let softcapNumber = new Decimal(tmp[this.layer].softcap);
-    let softcapText = new Decimal(tmp[this.layer].resetGain).gte(tmp[this.layer].softcap) || hasUpgrade("b", 21) ? "(Softcapped gain at: " + format(softcapNumber) + ")" : "";
-    return "Reset for +" + format(tmp[this.layer].resetGain, 0) + " alpha points.<br>" + softcapText + "<br> Next at: " + format(nextGain) + " points";
+    return `
+    Reset for +${format(tmp[this.layer].resetGain, 0)} alpha points.<br>
+    Next at: ${format(nextGain)} points.`;
   },
   componentStyles: {
     upgrade() {
@@ -188,6 +210,7 @@ addLayer("a", {
         if (hasUpgrade("a", 23)) cap = cap.add(upgradeEffect("a", 23));
         if (challengeCompletions("b", 11) > 0) cap = cap.mul(challengeEffect("b", 11));
         value = value.add(player[this.layer].total.mul(0.1));
+        if (getBuyableAmount("c", 13).gt(0)) value = value.pow(buyableEffect("c", 13));
         value = softcap(value, cap, power);
         return value;
       },

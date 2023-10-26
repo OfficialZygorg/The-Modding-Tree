@@ -8,6 +8,7 @@ addLayer("c", {
       points: new Decimal(0),
       best: new Decimal(0),
       total: new Decimal(0),
+      softcap2: D(2500),
     };
   },
   requires: new Decimal(1e16), // Can be a function that takes requirement increases into account
@@ -31,7 +32,11 @@ addLayer("c", {
     let value = new Decimal(50);
     return value;
   },
-  softcapPower: new Decimal(0.1),
+  softcapPower() {
+    let power = new Decimal(0.1);
+    if (getLayerSoftcapAble(this.layer, 2)) power = power.pow(1.3);
+    return power;
+  },
   row: 1, // Row the layer is in on the tree (0 is the first row)
   hotkeys: [
     {
@@ -42,11 +47,26 @@ addLayer("c", {
       },
     },
   ],
+  infoboxes: {
+    lore: {
+      title: "Softcaps",
+      unlocked() {
+        return getLayerSoftcapAble(this.layer);
+      },
+      body() {
+        let softcapText = getLayerSoftcapAble(this.layer) || hasUpgrade("b", 21) ? `(Softcapped gain at: ${format(getLayerSoftcap(this.layer))})<br>` : "";
+        let softcapText2 = getLayerSoftcapAble(this.layer, 2) ? `(Softcapped^2 gain at: ${format(getLayerSoftcap(this.layer, 2))})<br>` : "";
+        let stext = softcapText + softcapText2;
+        return `${stext}`;
+      },
+    },
+  },
   prestigeButtonText() {
     let nextGain = new Decimal(tmp[this.layer].nextAt);
-    let softcapNumber = new Decimal(tmp[this.layer].softcap);
-    let softcapText = new Decimal(tmp[this.layer].resetGain).gte(tmp[this.layer].softcap) ? "(Softcapped gain at: " + format(softcapNumber) + ")" : "";
-    return "Reset for +" + format(tmp[this.layer].resetGain, 0) + " alpha points.<br>" + softcapText + "<br> Next at: " + format(nextGain) + " alpha points";
+    return `
+    Reset for +${format(tmp[this.layer].resetGain, 0)} alpha points.<br>
+    Next at: ${format(nextGain)} alpha points.
+    `;
   },
   //Code by escapee from The Modding Tree discord https://discord.com/channels/762036407719428096/762071767346839573/1163891655410200689
   doReset(resettingLayer) {
@@ -71,6 +91,21 @@ addLayer("c", {
     return hasUpgrade("b", 41);
   },
   color: "purple",
+  milestones: {
+    0: {
+      requirementDescription: "1000 Charlie points.",
+      done() {
+        return player[this.layer].points.gte(1000);
+      },
+      effectDescription() {
+        let text = `Unlock next row of C layer upgrades, and an extra colum of upgrades for A & B layers.<br>(Upgrades not yet implemented)`;
+        return text;
+      },
+      unlocked() {
+        return hasBuyable(this.layer, 13);
+      },
+    },
+  },
   buyables: {
     11: {
       cost(x) {
@@ -81,12 +116,12 @@ addLayer("c", {
       },
       title: "B: Depowerer II",
       display() {
-        let cost = new Decimal(tmp.c.buyables[11].cost);
+        let cost = new Decimal(tmp[this.layer].buyables[this.id].cost);
         let capped = buyableEffect(this.layer, this.id).gte(100) ? "(Capped)" : "";
         return `Divide Vitamin B I softcap power by bought amount + 1<br>
         Cost: ${format(cost)}
-        Effect: /${format(buyableEffect("c", 11))} ${capped}
-        Bought: ${getBuyableAmount("c", 11)}`;
+        Effect: /${format(buyableEffect(this.layer, this.id))} ${capped}
+        Bought: ${getBuyableAmount(this.layer, this.id)}/99`;
       },
       canAfford() {
         return player[this.layer].points.gte(this.cost());
@@ -96,7 +131,7 @@ addLayer("c", {
         setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1));
       },
       effect(x) {
-        let eff = new Decimal(1).add(x);
+        let eff = new Decimal(1).add(x).min(100);
         return eff;
       },
       purchaseLimit: new Decimal(10),
@@ -109,11 +144,11 @@ addLayer("c", {
       },
       title: "B: Uncapper III",
       display() {
-        let cost = new Decimal(tmp.c.buyables[12].cost);
+        let cost = new Decimal(tmp[this.layer].buyables[this.id].cost);
         return `Multiply Vitamin B I softcap start by bought amount + 1<br>
         Cost: ${format(cost)}
-        Effect: x${format(buyableEffect("c", 12))}
-        Bought: ${getBuyableAmount("c", 12)}`;
+        Effect: x${format(buyableEffect(this.layer, this.id))}
+        Bought: ${getBuyableAmount(this.layer, this.id)}`;
       },
       canAfford() {
         return player[this.layer].points.gte(this.cost());
@@ -124,6 +159,33 @@ addLayer("c", {
       },
       effect(x) {
         let eff = new Decimal(1).add(x);
+        return eff;
+      },
+    },
+    13: {
+      cost(x) {
+        let current = x.add(1);
+        let cost = new Decimal(100).mul(current);
+        return cost;
+      },
+      title: "A: Empowerer I",
+      display() {
+        let cost = new Decimal(tmp[this.layer].buyables[this.id].cost);
+        return `Raise Additive I by 0.5 per amount bought.<br>
+        Cost: ${format(cost)}
+        Effect: ^${format(buyableEffect(this.layer, this.id))}
+        Bought: ${getBuyableAmount(this.layer, this.id)}`;
+      },
+      canAfford() {
+        return player[this.layer].points.gte(this.cost());
+      },
+      buy() {
+        player[this.layer].points = player[this.layer].points.sub(this.cost());
+        setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1));
+      },
+      effect(x) {
+        let bought = x;
+        let eff = new Decimal(1).add(bought.div(2));
         return eff;
       },
     },
