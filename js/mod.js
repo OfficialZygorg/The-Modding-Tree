@@ -70,22 +70,31 @@ function fixOldSave(oldVersion) {}
 
 // Set your version in num and name
 let VERSION = {
-  num: "0.4",
+  num: "0.4bf",
   name: "Alpha Phase",
 };
 
 let changelog = `
 <h1>Changelog:</h1><br>
+<h3>v0.4bf</h3><br>
+  - Fixed changelog layout.<br>
+  - Fixed reset for alpha points in B & C layers.<br>
+  - B: Depowerer 2 limit increased to 99 instead of 10.<br>
+  - Nerfed heavily A: Empowerer I power.<br>
+  - Instead of stuff in B CH1 saying disabled, say Disabled by ChallengeName.<br>
+  - Fixed disabled upgrades saying just currently:<br>
+  - Lowered A: Uncapped I cost.<br>
+  - Fixed layer C name from chalie to charlie.<br><br>
 <h3>v0.4</h3><br>
   - Added more C layer upgrades.
   - Added more softcaps for the layers.
   - Moved softcap boxes.
-  - Added functions to make softcap stuff easier & other functions (new functions are in easyAccess.js)
+  - Added functions to make softcap stuff easier & other functions (new functions are in easyAccess.js)<br><br>
 <h3>v0.3b</h3><br>
   - Adjusted upgrades names for easier understanding.<br>
   - Modified B Challenge 1 description.<br>
   - Modified C upgrades cost formulas soo the more you have, the more it costs.<br>
-  - Fixed some upgrades.
+  - Fixed some upgrades.<br><br>
 <h3>v0.3</h3><br>
   - Added more upgrades to Beta layer & balanced Beta challenge 1 debuff.<br>
   - Added C (Charlie) layer.<br>

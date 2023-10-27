@@ -5,13 +5,13 @@ addLayer("b", {
   startData() {
     return {
       unlocked: false,
-      points: new Decimal(0),
-      best: new Decimal(0),
-      total: new Decimal(0),
+      points: D(0),
+      best: D(0),
+      total: D(0),
       softcap2: D(1e6),
     };
   },
-  requires: new Decimal(5e5), // Can be a function that takes requirement increases into account
+  requires: D(5e5), // Can be a function that takes requirement increases into account
   resource: "beta points", // Name of prestige currency
   baseResource: "alpha points", // Name of resource prestige is based on
   baseAmount() {
@@ -21,18 +21,18 @@ addLayer("b", {
   exponent: 0.8, // Prestige currency exponent
   gainMult() {
     // Calculate the multiplier for main currency from bonuses
-    mult = new Decimal(1);
+    mult = D(1);
     if (hasUpgrade("b", 22)) mult = mult.add(upgradeEffect("b", 22));
     return mult;
   },
   gainExp() {
     // Calculate the exponent on main currency from bonuses
-    return new Decimal(1);
+    return D(1);
   },
   softcap() {
-    let value = new Decimal(1000);
+    let value = D(1000);
     if (player[this.layer].points.gte(50000) && challengeCompletions("b", 11) === 0) {
-      (player[this.layer].points = new Decimal(50000)), (player[this.layer].best = new Decimal(50000)), (player[this.layer].total = new Decimal(50000)), (value = new Decimal(0));
+      (player[this.layer].points = D(50000)), (player[this.layer].best = D(50000)), (player[this.layer].total = D(50000)), (value = D(0));
     }
     return value;
   },
@@ -58,7 +58,7 @@ addLayer("b", {
         return getLayerSoftcapAble(this.layer);
       },
       body() {
-        let softcapText = getLayerSoftcapAble(this.layer) || hasUpgrade("b", 21) ? `(Softcapped gain at: ${format(getLayerSoftcap(this.layer))})<br>` : "";
+        let softcapText = getLayerSoftcapAble(this.layer) || hasUpgrade("b", 21) ? `(Softcapped^1 gain at: ${format(getLayerSoftcap(this.layer))})<br>` : "";
         let softcapText2 = getLayerSoftcapAble(this.layer, 2) ? `(Softcapped^2 gain at: ${format(getLayerSoftcap(this.layer, 2))})<br>` : "";
         let stext = softcapText + softcapText2;
         return `${stext}`;
@@ -66,14 +66,14 @@ addLayer("b", {
     },
   },
   prestigeButtonText() {
-    let nextGain = !player.b.points.gte(50000) || challengeCompletions("b", 11) != 0 ? new Decimal(tmp[this.layer].nextAt) : new Decimal(Infinity);
-    let points = new Decimal(player[this.layer].points);
+    let nextGain = !player.b.points.gte(50000) || challengeCompletions("b", 11) != 0 ? D(tmp[this.layer].nextAt) : D(Infinity);
+    let points = D(player[this.layer].points);
     let capText =
       challengeCompletions("b", 11) < 1 && points.gte(50000)
         ? "<br><br>If Beta Challenge 1 isnt completed at least 1 time, Beta points, best and total will be capped at 50000.<br>Also, the softcap is a hardcap and becomes 0."
         : "";
     return `
-    Reset for + ${format(tmp[this.layer].resetGain, 0)} alpha points.<br>
+    Reset for + ${format(tmp[this.layer].resetGain, 0)} ${tmp[this.layer].name} points.<br>
     Next at: ${format(nextGain)} alpha points.
     ${capText}<br>
     `;
@@ -105,7 +105,7 @@ addLayer("b", {
       return { height: `${currHeight}px` };
     },
     challenge() {
-      return { height: "550px", width: "350px", "border-radius": "25px" };
+      return { height: "600px", width: "350px", "border-radius": "25px" };
     },
   },
   layerShown() {
@@ -120,7 +120,7 @@ addLayer("b", {
       },
       effectDescription() {
         let text = "Multiply Alpha point gain by best Beta points.";
-        if (inChallenge("b", 11)) text = "Disabled.";
+        if (inChallenge("b", 11)) text = "Disabled by Knucle Punch.";
         return text;
       },
     },
@@ -150,19 +150,19 @@ addLayer("b", {
     11: {
       name: `B: Challenge I<br>A: Knucle Punch`,
       fullDisplay() {
-        let chalGoal = new Decimal(challengeCompletions("b", 11)).add(1);
-        let goalText = new Decimal(2000).mul(chalGoal);
+        let chalGoal = D(challengeCompletions("b", 11)).add(1);
+        let goalText = D(2000).mul(chalGoal);
         let chalEffect = challengeEffect("b", 11);
-        let debuff = new Decimal(1);
-        let BChal1Comps = new Decimal(challengeCompletions("b", 11)).mul(0.1);
+        let debuff = D(1);
+        let BChal1Comps = D(challengeCompletions("b", 11)).mul(0.1);
         debuff = debuff.add(BChal1Comps);
-        let soft = new Decimal(1).add(new Decimal(challengeCompletions("b", 11)));
+        let soft = D(1).add(D(challengeCompletions("b", 11)));
         return (
           `
-        -On entering: Most of Alpha/Beta upgrades/milestones are disabled.<br>
-        Disabled upgrades cannot be bought.<br>
+        -On entering: Most of Alpha/Beta upgrades/milestones are Disabled by Knucle Punch.<br>
+        Disabled by Knucle Punch upgrades cannot be bought.<br>
         Alpha softcap cannot go beyond 30000 (Anything before this challenge cant affect it).<br>
-        Alpha passive generation is disabled.<br>
+        Alpha passive generation is Disabled by Knucle Punch.<br>
         Alpha point requirement is exponentiated by 0.1 per completion.<br>
         1st reward effect while in challenge is x1<br><br>
         -Reward: Each completion multiplies Additive I softcap start by (10^completions)*itself.<br>
@@ -181,27 +181,27 @@ addLayer("b", {
         );
       },
       canComplete: function () {
-        let chalGoal = new Decimal(challengeCompletions("b", 11)).add(1);
+        let chalGoal = D(challengeCompletions("b", 11)).add(1);
         let value = player.a.points;
-        let goal = new Decimal(2000).mul(chalGoal);
+        let goal = D(2000).mul(chalGoal);
         return value.gte(goal);
       },
       // goal() {
-      //   let chalGoal = new Decimal(challengeCompletions("b", 11)).max(1);
-      //   return new Decimal(5e5).mul(chalGoal);
+      //   let chalGoal = D(challengeCompletions("b", 11)).max(1);
+      //   return D(5e5).mul(chalGoal);
       // },
       completionLimit() {
-        return new Decimal(10);
+        return D(10);
       },
       layer() {
         return player.a.points;
       },
       rewardEffect() {
-        let value = new Decimal(10);
-        let eff = new Decimal(challengeCompletions("b", 11)).max(1);
+        let value = D(10);
+        let eff = D(challengeCompletions("b", 11)).max(1);
         value = value.pow(eff);
         value = value.mul(value);
-        if (inChallenge("b", 11)) value = new Decimal(1);
+        if (inChallenge("b", 11)) value = D(1);
         return value;
       },
       unlocked() {
@@ -214,42 +214,39 @@ addLayer("b", {
       title: "A: Additive II",
       description() {
         let text = "Each total Beta point multiplies Alpha point gain by 1";
-        if (inChallenge("b", 11)) text = "Disabled.";
+        if (inChallenge("b", 11)) text = "Disabled by Knucle Punch.";
         return text;
       },
-      cost: new Decimal(1),
+      cost: D(1),
       effect() {
-        let value = new Decimal(1);
-        let cap = new Decimal(10);
-        let power = new Decimal(0.1);
+        let value = D(1);
+        let cap = D(10);
+        let power = D(0.1);
         value = value.add(player[this.layer].total);
         value = softcap(value, cap, power);
-        if (inChallenge("b", 11)) return new Decimal(1);
+        if (inChallenge("b", 11)) return D(1);
         return value;
       },
       effectDisplay() {
-        let text =
-          format(upgradeEffect(this.layer, this.id)) +
-          "x" +
-          (upgradeEffect(this.layer, this.id).gte(10)
-            ? " (Softcapped)<br>" + "(Softcap Power: " + format(new Decimal(0.1).mul(1000)) + "%)<br>" + "(Softcap starts at: x" + format(new Decimal(10)) + ")"
-            : "");
-        if (inChallenge("b", 11)) text = "";
+        let text = `
+        x${format(upgradeEffect(this.layer, this.id))}<br>
+        ${upgradeEffect(this.layer, this.id).gte(10) ? `(Softcapped)<br>` + `(Softcap Power: +` + format(D(0.1).mul(1000)) + `%)<br>(Softcap starts at: x` + format(D(10)) + `)` : ""}
+        `;
         return text;
       },
     },
     12: {
       title: "A: Auto Alpha I",
       description: "Generate passively 1% of Alpha points on reset.",
-      cost: new Decimal(5),
+      cost: D(5),
       unlocked() {
         return hasUpgrade("b", 11);
       },
       effect() {
-        let value = new Decimal(0.01);
+        let value = D(0.01);
         if (hasUpgrade("b", 13)) {
-          let number = new Decimal(10);
-          if (inChallenge("b", 11)) number = new Decimal(1);
+          let number = D(10);
+          if (inChallenge("b", 11)) number = D(1);
           value = value.mul(number);
         }
         return value.max(0);
@@ -259,20 +256,19 @@ addLayer("b", {
       title: "A: Auto alpha II",
       description() {
         let text = "Multiply the passive generation of Alpha points by 1% of best beta points & Auto Alpha I is now 10%.";
-        if (inChallenge("b", 11)) text = "Disabled.";
+        if (inChallenge("b", 11)) text = "Disabled by Knucle Punch.";
         return text;
       },
-      cost: new Decimal(10),
+      cost: D(10),
       effect() {
-        let value = new Decimal(1);
-        let layerValue = new Decimal(player.b.best);
+        let value = D(1);
+        let layerValue = D(player.b.best);
         value = value.add(layerValue.mul(0.01));
-        if (inChallenge("b", 11)) return new Decimal(1);
+        if (inChallenge("b", 11)) return D(1);
         return value;
       },
       effectDisplay() {
-        let text = "x" + format(upgradeEffect(this.layer, this.id));
-        if (inChallenge("b", 11)) text = "";
+        let text = `x${format(upgradeEffect(this.layer, this.id))}`;
         return text;
       },
       unlocked() {
@@ -283,20 +279,19 @@ addLayer("b", {
       title: "A: Alphacap I",
       description() {
         let text = "Total Beta points increases Alpha points gain softcap exponentially.";
-        if (inChallenge("b", 11)) text = "Disabled.";
+        if (inChallenge("b", 11)) text = "Disabled by Knucle Punch.";
         return text;
       },
-      cost: new Decimal(20),
+      cost: D(20),
       effect() {
-        let value = new Decimal(1);
-        let layerValue = new Decimal(player.b.total);
+        let value = D(1);
+        let layerValue = D(player.b.total);
         value = value.add(layerValue.log(1e5));
-        if (inChallenge("b", 11)) return new Decimal(1);
+        if (inChallenge("b", 11)) return D(1);
         return value;
       },
       effectDisplay() {
         let text = `^${format(upgradeEffect(this.layer, this.id))}`;
-        if (inChallenge("b", 11)) text = "";
         return text;
       },
       unlocked() {
@@ -306,7 +301,7 @@ addLayer("b", {
     22: {
       title: "B: Sloggin I",
       description: "Points multiply Beta points gain.",
-      cost: new Decimal(500),
+      cost: D(500),
       effect() {
         let value = player.points.slog(500);
         return value;
@@ -321,7 +316,7 @@ addLayer("b", {
     23: {
       title: "B: Challenger I",
       description: "Unlock the 1st Beta challenge.",
-      cost: new Decimal(1000),
+      cost: D(1000),
       unlocked() {
         return hasUpgrade("b", 22);
       },
@@ -330,22 +325,21 @@ addLayer("b", {
       title: "A: Alphacap II",
       description() {
         let text = "Multiply Alphacap I by Beta Challenge 1 completions + 1.";
-        if (inChallenge("b", 11)) text = "Disabled.";
+        if (inChallenge("b", 11)) text = "Disabled by Knucle Punch.";
         return text;
       },
       cost() {
-        let value = new Decimal(1e5);
-        if (inChallenge("b", 11)) value = new Decimal(Infinity);
+        let value = D(1e5);
+        if (inChallenge("b", 11)) value = D(Infinity);
         return value;
       },
       effect() {
-        let value = new Decimal(challengeCompletions("b", 11)).max(1).add(1);
-        if (inChallenge("b", 11)) value = new Decimal(1);
+        let value = D(challengeCompletions("b", 11)).max(1).add(1);
+        if (inChallenge("b", 11)) value = D(1);
         return value;
       },
       effectDisplay() {
         let text = `x${format(upgradeEffect(this.layer, this.id))}`;
-        if (inChallenge("b", 11)) text = "";
         return text;
       },
       unlocked() {
@@ -355,9 +349,9 @@ addLayer("b", {
     32: {
       title: "B: Betacap I",
       description: "Beta challenge 1 completions + 1 multiply Beta point gain softcap.",
-      cost: new Decimal(1.5e5),
+      cost: D(1.5e5),
       effect() {
-        let value = new Decimal(challengeCompletions("b", 11)).add(1);
+        let value = D(challengeCompletions("b", 11)).add(1);
         return value;
       },
       effectDisplay() {
@@ -370,28 +364,26 @@ addLayer("b", {
     33: {
       title: "B: Vitamin B I",
       description: "Each total Beta point multiplies Beta point gain by 2.",
-      cost: new Decimal(2e5),
+      cost: D(2e5),
       effect() {
-        let value = new Decimal(1);
-        let cap = new Decimal(10);
-        let power = new Decimal(0.1);
+        let value = D(1);
+        let cap = D(10);
+        let power = D(0.1);
         value = value.add(player[this.layer].total).mul(2);
         if (getBuyableAmount("c", 11).gt(0)) power = power.div(buyableEffect("c", 11));
         if (getBuyableAmount("c", 12).gt(0)) cap = cap.mul(buyableEffect("c", 12));
         value = softcap(value, cap, power);
-        if (inChallenge("b", 11)) return new Decimal(1);
         return value;
       },
       effectDisplay() {
-        let softcapPower = new Decimal(100);
-        let softcapCap = new Decimal(10);
+        let softcapPower = D(100);
+        let softcapCap = D(10);
         if (getBuyableAmount("c", 11).gt(0)) softcapPower = softcapPower.div(buyableEffect("c", 11));
         if (getBuyableAmount("c", 12).gt(0)) softcapCap = softcapCap.mul(buyableEffect("c", 12));
-        let text =
-          format(upgradeEffect(this.layer, this.id)) +
-          "x" +
-          (upgradeEffect(this.layer, this.id).gte(10) ? " (Softcapped)<br>" + "(Softcap Power: " + format(softcapPower) + "%)<br>" + "(Softcap starts at: x" + format(softcapCap) + ")" : "");
-        if (inChallenge("b", 11)) text = "";
+        let text = `
+        x${format(upgradeEffect(this.layer, this.id))}<br>
+        ${upgradeEffect(this.layer, this.id).gte(10) ? `(Softcapped)<br>` + `(Softcap Power: +` + format(softcapPower) + `%)<br>(Softcap starts at: x` + format(softcapCap) + `)` : ""}
+        `;
         return text;
       },
       unlocked() {
