@@ -111,16 +111,13 @@ addLayer("c", {
       cost(x) {
         let current = x.add(1);
         let cost = D(50).mul(current);
-        if (buyableEffect(this.layer, this.id).gte(100)) return D(Infinity);
         return cost;
       },
       title: "B: Depowerer II",
       display() {
-        let cost = D(tmp[this.layer].buyables[this.id].cost);
-        let capped = buyableEffect(this.layer, this.id).gte(100) ? "(Capped)" : "";
         return `Divide Vitamin B I softcap power by bought amount + 1<br>
-        Cost: ${format(cost)}
-        Effect: /${format(buyableEffect(this.layer, this.id))} ${capped}
+        Cost: ${format(getBuyableCost(this.layer, this.id))}
+        Effect: /${format(buyableEffect(this.layer, this.id))}
         Bought: ${getBuyableAmount(this.layer, this.id)}/99`;
       },
       canAfford() {
@@ -144,9 +141,8 @@ addLayer("c", {
       },
       title: "B: Uncapper III",
       display() {
-        let cost = D(tmp[this.layer].buyables[this.id].cost);
         return `Multiply Vitamin B I softcap start by bought amount + 1<br>
-        Cost: ${format(cost)}
+        Cost: ${format(getBuyableCost(this.layer, this.id))}
         Effect: x${format(buyableEffect(this.layer, this.id))}
         Bought: ${getBuyableAmount(this.layer, this.id)}`;
       },
@@ -170,17 +166,11 @@ addLayer("c", {
       },
       title: "A: Empowerer I",
       display() {
-        let cost = D(tmp[this.layer].buyables[this.id].cost);
-        let value = buyableEffect(this.layer, this.id);
-        let cap = D(1.5);
-        let power = D(0.1);
-        value = softcap(value, cap, power);
-        let softcapText = value.gte(cap) ? `(Softcapped at: ^${format(cap)})` : "";
         return `Raise Additive I by 0.1 per amount bought.<br>
-        Cost: ${format(cost)}
+        Cost: ${format(getBuyableCost(this.layer, this.id))}
         Effect: ^${format(buyableEffect(this.layer, this.id))}
-        Bought: ${getBuyableAmount(this.layer, this.id)}
-        ${softcapText}`;
+        Bought: ${getBuyableAmount(this.layer, this.id)}/5
+        `;
       },
       canAfford() {
         return player[this.layer].points.gte(this.cost());
@@ -194,6 +184,7 @@ addLayer("c", {
         let eff = D(1).add(bought.div(10));
         return eff;
       },
+      purchaseLimit: D(5),
     },
   },
 });

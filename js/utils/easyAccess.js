@@ -94,3 +94,7 @@ function getLayerSoftcapAble(layer, softcapID) {
 function hasBuyable(layer, id) {
   return D(player[layer].buyables[id]).gt(0);
 }
+
+function getBuyableCost(layer, id) {
+  return D(tmp[layer].buyables[id].cost);
+}

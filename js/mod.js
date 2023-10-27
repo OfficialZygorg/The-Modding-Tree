@@ -5,7 +5,7 @@ let modInfo = {
   pointsName: "points",
   modFiles: ["layers/a.js", "layers/b.js", "layers/c.js", "tree.js"],
 
-  discordName: "",
+  discordName: "Zygorg",
   discordLink: "",
   initialStartPoints: new Decimal(10), // Used for hard resets and new players
   offlineLimit: 0, // In hours
@@ -84,7 +84,8 @@ let changelog = `
   - Instead of stuff in B CH1 saying disabled, say Disabled by ChallengeName.<br>
   - Fixed disabled upgrades saying just currently:<br>
   - Lowered A: Uncapped I cost.<br>
-  - Fixed layer C name from chalie to charlie.<br><br>
+  - Fixed layer C name from chalie to charlie.<br>
+  - Capped A: Emporerer I to ^1.5<br><br>
 <h3>v0.4</h3><br>
   - Added more C layer upgrades.
   - Added more softcaps for the layers.
