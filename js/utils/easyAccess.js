@@ -86,8 +86,18 @@ function getLayerSoftcap(layer, softcapID) {
   }
 }
 
+function setLayerSoftcap(value, layer, softcapID) {
+  if (softcapID === undefined) tmp[layer].softcap = D(value);
+  else {
+    let data = tmp[layer].startData();
+    data["softcap" + softcapID] = D(value);
+  }
+}
+
 function getLayerSoftcapAble(layer, softcapID) {
-  if (D(player[layer].points).gte(player[layer]["softcap" + softcapID]) || D(tmp[layer].resetGain).gte(player[layer]["softcap" + softcapID])) return true;
+  if (softcapID === undefined) {
+    if (D(player[layer].points).gte(tmp[layer].softcap) || D(tmp[layer].resetGain).gte(tmp[layer].softcap)) return true;
+  } else if (D(player[layer].points).gte(player[layer]["softcap" + softcapID]) || D(tmp[layer].resetGain).gte(player[layer]["softcap" + softcapID])) return true;
   else return false;
 }
 
@@ -97,4 +107,32 @@ function hasBuyable(layer, id) {
 
 function getBuyableCost(layer, id) {
   return D(tmp[layer].buyables[id].cost);
+}
+
+function getUpgradeName(layer, id) {
+  return `${tmp[layer].name} Upgrade ${id}`;
+}
+
+function getChallengeName(layer, id) {
+  return `${tmp[layer].challenges[id].name}`;
+}
+
+function getDisabledByChallenge(layer, id) {
+  return `Disabled by ${tmp[layer].challenges[id].name} in layer ${tmp[layer].name}`;
+}
+
+function getUpgradeSoftcap(layer, id, softcapID) {
+  return D(tmp[layer].upgrades[id].softcaps["softcap" + softcapID]);
+}
+
+function setUpgradeSoftcap(layer, id, softcapID, value) {
+  return (tmp[layer].upgrades[id].softcaps["softcap" + softcapID] = D(value));
+}
+
+function getUpgradeSoftcapPower(layer, id, powerID) {
+  return D(tmp[layer].upgrades[id].softcaps["power" + powerID]);
+}
+
+function setUpgradeSoftcapPower(layer, id, powerID, value) {
+  return (tmp[layer].upgrades[id].softcaps["power" + powerID] = D(value));
 }

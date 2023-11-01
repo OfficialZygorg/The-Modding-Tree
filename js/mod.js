@@ -1,6 +1,6 @@
 let modInfo = {
   name: "The ABC Tree",
-  id: "abctree",
+  id: "abctree-unstable",
   author: "Zygorg",
   pointsName: "points",
   modFiles: ["layers/a.js", "layers/b.js", "layers/c.js", "tree.js"],
@@ -33,6 +33,7 @@ function getPointGen() {
   let gain = new Decimal(1);
 
   //Alpha
+  gain = gain.mul(tmp.a.effect);
   if (hasUpgrade("a", 11)) gain = gain.mul(upgradeEffect("a", 11));
   if (hasUpgrade("a", 12)) gain = gain.mul(upgradeEffect("a", 12));
   if (hasUpgrade("a", 13)) gain = gain.mul(upgradeEffect("a", 13));
@@ -70,12 +71,18 @@ function fixOldSave(oldVersion) {}
 
 // Set your version in num and name
 let VERSION = {
-  num: "0.4bf",
+  num: "0.5-unstable",
   name: "Alpha Phase",
 };
 
 let changelog = `
 <h1>Changelog:</h1><br>
+<h3>v0.5-unstable</h3><br>
+  - Prettified Layer A.<br>
+  - Balanced layer A.<br>
+  - Added tooltips to some upgrades.<br>
+  - Changed upgrade names.<br>
+  - Milestones now stay permanently unlocked when unlocked.<br><br>
 <h3>v0.4bf</h3><br>
   - Fixed changelog layout.<br>
   - Fixed reset for alpha points in B & C layers.<br>

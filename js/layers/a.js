@@ -1,9 +1,7 @@
 addLayer("a", {
-  name: "alpha", // This is optional, only used in a few places, If absent it just uses the layer id.
-  symbol: "A", // This appears on the layer's node. Default is the id with the first letter capitalized
-  position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
   startData() {
     return {
+      name: "Alpha",
       unlocked: true,
       points: D(0),
       best: D(0),
@@ -13,6 +11,25 @@ addLayer("a", {
       softcap3: D(1e22),
     };
   },
+  layerShown() {
+    return true;
+  },
+  componentStyles: {
+    upgrade() {
+      return { width: "130px", "border-radius": "5px" };
+    },
+  },
+  color: "yellow",
+  branches: ["b", "c"],
+  name: "Alpha", // This is optional, only used in a few places, If absent it just uses the layer id.
+  symbol: "A", // This appears on the layer's node. Default is the id with the first letter capitalized
+  position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+  row: 0, // Row the layer is in on the tree (0 is the first row)
+  resource: "alpha points", // Name of prestige currency
+  baseResource: "points", // Name of resource prestige is based on
+  baseAmount() {
+    return player.points;
+  }, // Get the current amount of baseResource
   requires() {
     let value = D(10);
     let nerf = D(1);
@@ -21,11 +38,6 @@ addLayer("a", {
     if (inChallenge("b", 11)) value = value.pow(nerf);
     return value;
   }, // Can be a function that takes requirement increases into account
-  resource: "alpha points", // Name of prestige currency
-  baseResource: "points", // Name of resource prestige is based on
-  baseAmount() {
-    return player.points;
-  }, // Get the current amount of baseResource
   type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
   exponent: 0.9, // Prestige currency exponent
   gainMult() {
@@ -51,6 +63,8 @@ addLayer("a", {
     if (hasUpgrade("b", 21)) value = value.pow(upgradeEffect("b", 21));
     if (challengeCompletions("b", 11) > 0) value = value.mul(bChallenge1);
     if (inChallenge("b", 11)) return D(30000).mul(bChallenge1);
+    if (value.gte(getLayerSoftcap(this.layer, 2))) setLayerSoftcap(value, this.layer, 2);
+    if (getLayerSoftcap(this.layer, 2).gte(getLayerSoftcap(this.layer, 3))) setLayerSoftcap(getLayerSoftcap(this.layer, 2), this.layer, 3);
     return value;
   },
   softcapPower() {
@@ -59,21 +73,11 @@ addLayer("a", {
     if (getLayerSoftcapAble(this.layer, 3)) power = power.pow(1.1);
     return power;
   },
-  row: 0, // Row the layer is in on the tree (0 is the first row)
-  hotkeys: [
-    {
-      key: "a",
-      description: "A: Reset for Alpha points",
-      onPress() {
-        if (canReset(this.layer)) doReset(this.layer);
-      },
-    },
-  ],
   infoboxes: {
     lore: {
       title: "Softcaps",
       unlocked() {
-        return getLayerSoftcapAble(this.layer) || hasUpgrade("b", 21);
+        return getLayerSoftcapAble(this.layer);
       },
       body() {
         let softcapText = getLayerSoftcapAble(this.layer) || hasUpgrade("b", 21) ? `(Softcapped^1 gain at: ${format(getLayerSoftcap(this.layer))})<br>` : "";
@@ -84,16 +88,28 @@ addLayer("a", {
       },
     },
   },
+  effect() {
+    let value = player[this.layer].points.add(1).tetrate(0.1);
+    return value;
+  },
+  effectDescription() {
+    let text = `they multiply points by x${format(tmp[this.layer].effect)}`;
+    return text;
+  },
+  hotkeys: [
+    {
+      key: "a",
+      description: "A: Reset for Alpha points",
+      onPress() {
+        if (canReset(this.layer)) doReset(this.layer);
+      },
+    },
+  ],
   prestigeButtonText() {
     let nextGain = D(tmp[this.layer].nextAt);
     return `
     Reset for +${format(tmp[this.layer].resetGain, 0)} alpha points.<br>
     Next at: ${format(nextGain)} points.`;
-  },
-  componentStyles: {
-    upgrade() {
-      return { width: "130px" };
-    },
   },
   passiveGeneration() {
     let value = D(0);
@@ -114,7 +130,7 @@ addLayer("a", {
 
     // Stage 3, track which main features you want to keep - all upgrades, total points, specific toggles, etc.
     let keep = [];
-    if (hasUpgrade("a", 33)) keep.push("milestones");
+    keep.push("milestones");
     if (hasMilestone("b", 2)) keep.push("autoBuy");
 
     // Stage 4, do the actual data reset
@@ -123,11 +139,7 @@ addLayer("a", {
     // Stage 5, add back in the specific subfeatures you saved earlier
     player[this.layer].upgrades.push(...keptUpgrades);
   },
-  layerShown() {
-    return true;
-  },
-  color: "yellow",
-  branches: ["b", "c"],
+
   milestonePopups() {
     let popup = true;
     if (hasUpgrade("a", 33)) popup = false;
@@ -144,7 +156,7 @@ addLayer("a", {
       },
       effectDescription: "Unlock 2nd row of Alpha upgrades.",
       unlocked() {
-        return hasUpgrade("a", 13) || hasUpgrade("a", 33);
+        return hasUpgrade("a", 13) || hasUpgrade("a", 33) || player[this.layer].points.gte(100);
       },
     },
     1: {
@@ -154,16 +166,18 @@ addLayer("a", {
       },
       effectDescription: "Unlock 3rd row of Alpha upgrades.",
       unlocked() {
-        return hasUpgrade("a", 23) || hasUpgrade("a", 33);
+        return hasUpgrade("a", 23) || hasUpgrade("a", 33) || player[this.layer].points.gte(5000);
       },
     },
   },
   upgrades: {
     11: {
-      title: "Point: Doubler",
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //"Point: Doubler",
       description() {
-        let text = "Double your point gain.";
-        if (inChallenge("b", 11)) text = "Disabled by Knucle Punch.";
+        let text = "Doubles your point gain.";
+        if (inChallenge("b", 11)) text = `${getDisabledByChallenge("b", 11)}`;
         return text;
       },
       cost() {
@@ -176,12 +190,17 @@ addLayer("a", {
         if (inChallenge("b", 11)) value = D(1);
         return value;
       },
+      effectDisplay() {
+        return `x${upgradeEffect(this.layer, this.id)}`;
+      },
     },
     12: {
-      title: "Point: Tripler",
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //"Point: Tripler",
       description() {
         let text = "Triples your point gain.";
-        if (inChallenge("b", 11)) text = "Disabled by Knucle Punch.";
+        if (inChallenge("b", 11)) text = `${getDisabledByChallenge("b", 11)}`;
         return text;
       },
       cost() {
@@ -197,66 +216,132 @@ addLayer("a", {
         if (inChallenge("b", 11)) value = D(1);
         return value;
       },
+      effectDisplay() {
+        return `x${upgradeEffect(this.layer, this.id)}`;
+      },
     },
     13: {
-      title: "A: Additive I",
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //"A: Additive I",
       description: "Each total Alpha point multiplies point gain by 0.1",
       cost: D(20),
-      effect() {
-        let value = D(1);
-        let cap = D(10);
-        let power = D(0.1);
-        if (hasUpgrade("a", 21)) power = power.mul(upgradeEffect("a", 21)).min(0.9);
-        if (hasUpgrade("a", 23)) cap = cap.add(upgradeEffect("a", 23));
-        if (challengeCompletions("b", 11) > 0) cap = cap.mul(challengeEffect("b", 11));
-        value = value.add(player[this.layer].total.mul(0.1));
-        if (getBuyableAmount("c", 13).gt(0)) value = value.pow(buyableEffect("c", 13));
-        value = softcap(value, cap, power);
-        return value;
-      },
-      effectDisplay() {
-        let bChal1Effect = challengeCompletions("b", 11) > 0 ? D(challengeEffect("b", 11)) : D(1);
-        let softcapPower = D(100).div(upgradeEffect("a", 21));
-        let softcapCap = D(10).add(upgradeEffect("a", 23)).mul(bChal1Effect);
-        return `
-        x${format(upgradeEffect(this.layer, this.id))}<br>
-        ${upgradeEffect(this.layer, this.id).gte(10) ? `(Softcapped)<br>` + `(Softcap Power: +` + format(softcapPower) + `%)<br>(Softcap starts at: x` + format(softcapCap) + `)` : ""}
-        `;
-      },
       unlocked() {
         return hasUpgrade("a", 12) || hasUpgrade("a", 33);
       },
+      softcaps() {
+        softcapsObj = {
+          softcap1: D(10),
+          power1: D(0.1),
+          softcap2: D(100),
+          power2: D(0.1),
+          softcap3: D(1e4),
+          power3: D(0.1),
+          softcap4: D(1e8),
+          power4: D(0.1),
+          softcap5: D(1e16),
+          power5: D(0.1),
+        };
+        return softcapsObj;
+      },
+      effect() {
+        let value = D(1);
+        if (hasUpgrade("a", 21)) setUpgradeSoftcapPower(this.layer, this.id, 1, getUpgradeSoftcapPower(this.layer, this.id, 1).mul(upgradeEffect(this.layer, 21)));
+        if (hasUpgrade("a", 23))
+          setUpgradeSoftcap(
+            this.layer,
+            this.id,
+            1,
+            getUpgradeSoftcap(this.layer, this.id, 1)
+              .add(upgradeEffect("a", 23))
+              .mul(challengeCompletions("b", 11) > 0 ? challengeEffect("b", 11) : 1)
+          );
+        value = value.add(player[this.layer].total.mul(0.1));
+        if (getBuyableAmount("c", 13).gt(0)) value = value.pow(buyableEffect("c", 13));
+        value = softcap(value, getUpgradeSoftcap(this.layer, this.id, 1), getUpgradeSoftcapPower(this.layer, this.id, 1));
+        if (getUpgradeSoftcap(this.layer, this.id, 1).gte(getUpgradeSoftcap(this.layer, this.id, 2))) setUpgradeSoftcap(this.layer, this.id, 2, getUpgradeSoftcap(this.layer, this.id, 1));
+        if (getUpgradeSoftcap(this.layer, this.id, 2).gte(getUpgradeSoftcap(this.layer, this.id, 3))) setUpgradeSoftcap(this.layer, this.id, 3, getUpgradeSoftcap(this.layer, this.id, 2));
+        if (getUpgradeSoftcap(this.layer, this.id, 3).gte(getUpgradeSoftcap(this.layer, this.id, 4))) setUpgradeSoftcap(this.layer, this.id, 4, getUpgradeSoftcap(this.layer, this.id, 3));
+        if (getUpgradeSoftcap(this.layer, this.id, 4).gte(getUpgradeSoftcap(this.layer, this.id, 5))) setUpgradeSoftcap(this.layer, this.id, 5, getUpgradeSoftcap(this.layer, this.id, 4));
+        if (value.gte(getUpgradeSoftcap(this.layer, this.id, 2))) value = softcap(value, getUpgradeSoftcap(this.layer, this.id, 2), getUpgradeSoftcapPower(this.layer, this.id, 2));
+        if (value.gte(getUpgradeSoftcap(this.layer, this.id, 3))) value = softcap(value, getUpgradeSoftcap(this.layer, this.id, 3), getUpgradeSoftcapPower(this.layer, this.id, 3));
+        if (value.gte(getUpgradeSoftcap(this.layer, this.id, 4))) value = softcap(value, getUpgradeSoftcap(this.layer, this.id, 4), getUpgradeSoftcapPower(this.layer, this.id, 4));
+        if (value.gte(getUpgradeSoftcap(this.layer, this.id, 5))) value = softcap(value, getUpgradeSoftcap(this.layer, this.id, 5), getUpgradeSoftcapPower(this.layer, this.id, 5));
+        return value;
+      },
+      effectDisplay() {
+        let text = `x${format(upgradeEffect(this.layer, this.id))}`;
+        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 1))) text = text + ` (Softcapped^1)`;
+        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 2))) text = text + ` (Softcapped^2)`;
+        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 3))) text = text + ` (Softcapped^3)`;
+        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 4))) text = text + ` (Softcapped^4)`;
+        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 5))) text = text + ` (Softcapped^5)`;
+        return text;
+      },
+      tooltip() {
+        let softcap1Pow = D(0.1).mul(1000).div(upgradeEffect(this.layer, 21).mul(10));
+        let softcap2Pow = D(0.1).mul(1000);
+        let softcap3Pow = D(0.1).mul(1000);
+        let softcap4Pow = D(0.1).mul(1000);
+        let softcap5Pow = D(0.1).mul(1000);
+        let softcapText = `${
+          upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 1))
+            ? `P=Power, S=Start<br>Softcap^1 P:${format(softcap1Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 1))}`
+            : ""
+        }`;
+        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 2)))
+          softcapText = softcapText + ` <br>Softcap^2 P:${format(softcap2Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 2))}`;
+        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 3)))
+          softcapText = softcapText + ` <br>Softcap^3 P:${format(softcap3Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 3))}`;
+        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 4)))
+          softcapText = softcapText + ` <br>Softcap^4 P:${format(softcap4Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 4))}`;
+        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 5)))
+          softcapText = softcapText + ` <br>Softcap^5 P:${format(softcap5Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 5))}`;
+        let formula = `Formula: TotalAP*0.1`;
+        let text = `${formula}<br>${softcapText}`;
+        return text;
+      },
     },
     21: {
-      title: "A: Depowerer I",
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //"A: Depowerer I",
       description() {
-        let text = "Your total Alpha points divides the softcap power of Additive I upgrade by some amount.";
+        let text = `Your total Alpha points divides the Softcap^1 power of ${getUpgradeName(this.layer, 13)} by some amount.`;
         return text;
       },
       cost() {
         let value = D(1000);
         return value;
       },
+      unlocked() {
+        return hasMilestone("a", 0) || hasUpgrade("a", 33);
+      },
       effect() {
-        let value = D(1);
-        value = value.add(player[this.layer].total.max(1).div(1000).log(2)).max(1).min(100);
+        value = player[this.layer].total.max(1).div(this.cost()).log(5).max(1).min(10);
         return value;
       },
       effectDisplay() {
-        let capped = upgradeEffect(this.layer, this.id).gte(100) ? "(Capped)" : "";
-        let text = `/${format(upgradeEffect(this.layer, this.id))} ${capped}`;
+        let capped = upgradeEffect(this.layer, this.id).gte(10) ? "(Capped)" : "";
+        let text = `/${format(upgradeEffect(this.layer, this.id).mul(10))} ${capped}`;
+        return text;
+      },
+      tooltip() {
+        let text = `Formula: (TotalAP/${format(this.cost())})log(5)`;
         return text;
       },
     },
     22: {
-      title: "Point: Quadrupler",
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //"Point: Quadrupler",
       description() {
         let text = "Quadruples your point gain";
         if (inChallenge("b", 11)) text = "Disabled by Knucle Punch.";
         return text;
       },
       cost() {
-        let value = D(5e3);
+        let value = D(2e3);
         if (inChallenge("b", 11)) value = D(Infinity);
         return value;
       },
@@ -268,18 +353,22 @@ addLayer("a", {
         if (inChallenge("b", 11)) value = D(1);
         return value;
       },
+      effectDisplay() {
+        return `x${upgradeEffect(this.layer, this.id)}`;
+      },
     },
     23: {
-      title: "A: Uncapper I",
-      description: "Your total Alpha points increments the start of Additive I softcap.",
-      cost: D(1e4),
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //"A: Uncapper I",
+      description() {
+        let text = `Your total Alpha points increments the start of ${getUpgradeName(this.layer, 13)} Softcap^1.`;
+        return text;
+      },
+      cost: D(5e3),
       effect() {
-        let value = D(1);
-        value = value.add(player[this.layer].total.max(1).div(1e5).log(5));
+        let value = player[this.layer].total.max(1).div(this.cost).log(5).max(0);
         if (hasUpgrade("a", 32)) value = value.pow(upgradeEffect("a", 32));
-        let cap = D(10);
-        let power = D(0.1);
-        value = softcap(value, cap, power).max(0);
         return value;
       },
       effectDisplay() {
@@ -288,16 +377,22 @@ addLayer("a", {
       unlocked() {
         return hasUpgrade("a", 22) || hasUpgrade("a", 33);
       },
+      tooltip() {
+        let text = `Formula: (TotalAP/${format(this.cost)})log(5)`;
+        return text;
+      },
     },
     31: {
-      title: "Point: Quintupler",
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //"Point: Quintupler",
       description() {
         let text = "Quintuples your point gain";
         if (inChallenge("b", 11)) text = "Disabled by Knucle Punch.";
         return text;
       },
       cost() {
-        let value = D(2e5);
+        let value = D(2e4);
         if (inChallenge("b", 11)) value = D(Infinity);
         return value;
       },
@@ -309,22 +404,29 @@ addLayer("a", {
         if (inChallenge("b", 11)) value = D(1);
         return value;
       },
+      effectDisplay() {
+        return `x${upgradeEffect(this.layer, this.id)}`;
+      },
     },
     32: {
-      title: "A: Uncapper II",
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //"A: Uncapper II",
       description() {
-        let text = "Increments exponentially Uncapper I by some ammount based on the total Alpha points.";
+        let text = `Increments exponentially ${getUpgradeName(this.layer, 23)} by some ammount based on the total Alpha points.`;
         if (inChallenge("b", 11)) text = "Disabled by Knucle Punch.";
         return text;
       },
       cost() {
-        let value = D(5e5);
+        let value = D(1e5);
         if (inChallenge("b", 11)) value = D(Infinity);
         return value;
       },
+      unlocked() {
+        return hasUpgrade("a", 31) || hasUpgrade("a", 33);
+      },
       effect() {
-        let value = D(1);
-        value = value.add(player[this.layer].total.max(1).div(5e5).log(50).max(0));
+        let value = player[this.layer].total.max(1).div(this.cost()).tetrate(0.1).max(1);
         if (inChallenge("b", 11)) value = D(1);
         return value;
       },
@@ -332,14 +434,17 @@ addLayer("a", {
         let text = "^" + format(upgradeEffect(this.layer, this.id));
         return text;
       },
-      unlocked() {
-        return hasUpgrade("a", 31) || hasUpgrade("a", 33);
+      tooltip() {
+        let text = `Formula: (TotalAP/${format(this.cost())})tetrate(0.1)`;
+        return text;
       },
     },
     33: {
-      title: "B: Betax",
-      description: "Unlocks the Beta layer & keep Alpha Milestones.",
-      // cost: D(1e6),
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //"B: Betax",
+      description: "Unlocks the Beta layer (Layer B disabled on unstable [for now]).",
+      cost: D(2e5),
       unlocked() {
         return hasUpgrade("a", 32) || hasUpgrade("a", 33);
       },
