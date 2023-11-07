@@ -33,12 +33,14 @@ function getPointGen() {
   let gain = new Decimal(1);
 
   //Alpha
-  gain = gain.mul(tmp.a.effect);
+  gain = gain.mul(getLayerEffect("a"));
   if (hasUpgrade("a", 11)) gain = gain.mul(upgradeEffect("a", 11));
   if (hasUpgrade("a", 12)) gain = gain.mul(upgradeEffect("a", 12));
   if (hasUpgrade("a", 13)) gain = gain.mul(upgradeEffect("a", 13));
   if (hasUpgrade("a", 22)) gain = gain.mul(upgradeEffect("a", 22));
   if (hasUpgrade("a", 31)) gain = gain.mul(upgradeEffect("a", 31));
+  //Beta
+  gain = gain.mul(getLayerEffect("b"));
   return gain;
 }
 
@@ -71,64 +73,75 @@ function fixOldSave(oldVersion) {}
 
 // Set your version in num and name
 let VERSION = {
-  num: "0.5-unstable",
+  num: "0.51-unstable",
   name: "Alpha Phase",
 };
 
 let changelog = `
 <h1>Changelog:</h1><br>
+<h3>v0.51-unstable</h3><br>
+- Prettified Layer B.<br>
+- Balanced Layer B.<br>
+- Added tooltips to some upgrades.<br>
+- Modified some milestones/upgrades from layer B.<br>
+- Added more functions.<br>
+- Modified how you unlock upgrades & layers.<br>
+- Modified BCh11 effects.<br>
+- Removed some now useless upgrades (the ones that unlocked the layers).<br>
+- Balanced the cost of B layer upgrades.<br>
+- Fixed? issue with A layer autobuyer while in BCh11.<br><br>
 <h3>v0.5-unstable</h3><br>
-  - Prettified Layer A.<br>
-  - Balanced layer A.<br>
-  - Added tooltips to some upgrades.<br>
-  - Changed upgrade names.<br>
-  - Milestones now stay permanently unlocked when unlocked.<br><br>
+- Prettified Layer A.<br>
+- Balanced layer A.<br>
+- Added tooltips to some upgrades.<br>
+- Changed upgrade names.<br>
+- Milestones now stay permanently unlocked when unlocked.<br><br>
 <h3>v0.4bf</h3><br>
-  - Fixed changelog layout.<br>
-  - Fixed reset for alpha points in B & C layers.<br>
-  - B: Depowerer 2 limit increased to 99 instead of 10.<br>
-  - Nerfed heavily A: Empowerer I power.<br>
-  - Instead of stuff in B CH1 saying disabled, say Disabled by ChallengeName.<br>
-  - Fixed disabled upgrades saying just currently:<br>
-  - Lowered A: Uncapped I cost.<br>
-  - Fixed layer C name from chalie to charlie.<br>
-  - Capped A: Emporerer I to ^1.5<br><br>
+- Fixed changelog layout.<br>
+- Fixed reset for alpha points in B & C layers.<br>
+- B: Depowerer 2 limit increased to 99 instead of 10.<br>
+- Nerfed heavily A: Empowerer I power.<br>
+- Instead of stuff in B CH1 saying disabled, say Disabled by ChallengeName.<br>
+- Fixed disabled upgrades saying just currently:<br>
+- Lowered A: Uncapped I cost.<br>
+- Fixed layer C name from chalie to charlie.<br>
+- Capped A: Emporerer I to ^1.5<br><br>
 <h3>v0.4</h3><br>
-  - Added more C layer upgrades.
-  - Added more softcaps for the layers.
-  - Moved softcap boxes.
-  - Added functions to make softcap stuff easier & other functions (new functions are in easyAccess.js)<br><br>
+- Added more C layer upgrades.
+- Added more softcaps for the layers.
+- Moved softcap boxes.
+- Added functions to make softcap stuff easier & other functions (new functions are in easyAccess.js)<br><br>
 <h3>v0.3b</h3><br>
-  - Adjusted upgrades names for easier understanding.<br>
-  - Modified B Challenge 1 description.<br>
-  - Modified C upgrades cost formulas soo the more you have, the more it costs.<br>
-  - Fixed some upgrades.<br><br>
+- Adjusted upgrades names for easier understanding.<br>
+- Modified B Challenge 1 description.<br>
+- Modified C upgrades cost formulas soo the more you have, the more it costs.<br>
+- Fixed some upgrades.<br><br>
 <h3>v0.3</h3><br>
-  - Added more upgrades to Beta layer & balanced Beta challenge 1 debuff.<br>
-  - Added C (Charlie) layer.<br>
-  - Balanced some B layer upgrade costs.<br>
-  - Removed the math formulas from upgrade descriptions.
-  - Added some C layer upgrades.<br><br>
+- Added more upgrades to Beta layer & balanced Beta challenge 1 debuff.<br>
+- Added C (Charlie) layer.<br>
+- Balanced some B layer upgrade costs.<br>
+- Removed the math formulas from upgrade descriptions.
+- Added some C layer upgrades.<br><br>
 <h3>v0.2b</h3><br>
-  - Made a toggle for the 3rd Beta milestone.<br>
-  - Beta challenge reward doesnt affect Additive I while in challenge.<br><br>
+- Made a toggle for the 3rd Beta milestone.<br>
+- Beta challenge reward doesnt affect Additive I while in challenge.<br><br>
 <h3>v0.2</h3><br>
-  - Added Beta challenge & balanced Beta gain requirements.<br>
-  - Balanced some Beta upgrades.<br>
-  - Putted the math formulas into the upgrades descriptions.<br><br>
+- Added Beta challenge & balanced Beta gain requirements.<br>
+- Balanced some Beta upgrades.<br>
+- Putted the math formulas into the upgrades descriptions.<br><br>
 <h3>v0.1f</h3><br>
-  - Fixed beta milestone not working.<br>
-  - Balanced alpha & beta layer.<br>
-  - Added more milestones to beta layer, added more upgrades to beta layer.<br>
-  - Added simulateTime(time) function (copied the function name and idea from Incremental Mass Rewritten).<br>
-  - Added workflows.<br>
-  - Disabled alpha milestones popups if you have beta unlocked.<br>
-  - Balanced alpha & beta layer again.<br>
-  - Modified beta layer milestones & upgrades.
-  - Prettify upgrades descriptions.<br><br>
-	<h3>v0.1</h3><br>
-	- Project start 17/10/2023.<br>
-	- Added alpha layer.<br>
-	- Pretified javascripts.<br>
-	- Added beta layer, added layer reset (thanks escapee), initial push for people to test this.<br><br>
-  `;
+- Fixed beta milestone not working.<br>
+- Balanced alpha & beta layer.<br>
+- Added more milestones to beta layer, added more upgrades to beta layer.<br>
+- Added simulateTime(time) function (copied the function name and idea from Incremental Mass Rewritten).<br>
+- Added workflows.<br>
+- Disabled alpha milestones popups if you have beta unlocked.<br>
+- Balanced alpha & beta layer again.<br>
+- Modified beta layer milestones & upgrades.
+- Prettify upgrades descriptions.<br><br>
+<h3>v0.1</h3><br>
+- Project start 17/10/2023.<br>
+- Added alpha layer.<br>
+- Pretified javascripts.<br>
+- Added beta layer, added layer reset (thanks escapee), initial push for people to test this.<br><br>
+`;

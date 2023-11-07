@@ -89,8 +89,7 @@ function getLayerSoftcap(layer, softcapID) {
 function setLayerSoftcap(value, layer, softcapID) {
   if (softcapID === undefined) tmp[layer].softcap = D(value);
   else {
-    let data = tmp[layer].startData();
-    data["softcap" + softcapID] = D(value);
+    player["softcap" + softcapID] = D(value);
   }
 }
 
@@ -118,7 +117,7 @@ function getChallengeName(layer, id) {
 }
 
 function getDisabledByChallenge(layer, id) {
-  return `Disabled by ${tmp[layer].challenges[id].name} in layer ${tmp[layer].name}`;
+  return `Disabled by ${tmp[layer].challenges[id].name}`;
 }
 
 function getUpgradeSoftcap(layer, id, softcapID) {
@@ -135,4 +134,28 @@ function getUpgradeSoftcapPower(layer, id, powerID) {
 
 function setUpgradeSoftcapPower(layer, id, powerID, value) {
   return (tmp[layer].upgrades[id].softcaps["power" + powerID] = D(value));
+}
+
+function getLayerResetGain(layer) {
+  return D(tmp[layer].resetGain);
+}
+
+function getLayerName(layer) {
+  return tmp[layer].name;
+}
+
+function getLayerEffect(layer) {
+  return D(tmp[layer].effect);
+}
+
+function getLayerPoints(layer) {
+  return D(player[layer].points);
+}
+
+function getLayerBest(Layer) {
+  return D(player[layer].best);
+}
+
+function hasLayerUnlocked(layer) {
+  return player[layer].unlocked;
 }

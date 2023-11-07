@@ -11,7 +11,10 @@ addLayer("c", {
       softcap2: D(2500),
     };
   },
-  requires: D(1e16), // Can be a function that takes requirement increases into account
+  layerShown() {
+    return hasMilestone("b", 3);
+  },
+  requires: D(Infinity), //D(1e16), // Can be a function that takes requirement increases into account
   resource: "carbon points", // Name of prestige currency
   baseResource: "alpha points", // Name of resource prestige is based on
   baseAmount() {
@@ -86,9 +89,6 @@ addLayer("c", {
 
     // Stage 5, add back in the specific subfeatures you saved earlier
     player[this.layer].upgrades.push(...keptUpgrades);
-  },
-  layerShown() {
-    return hasUpgrade("b", 41);
   },
   color: "purple",
   milestones: {
