@@ -33,14 +33,17 @@ function getPointGen() {
   let gain = new Decimal(1);
 
   //Alpha
-  gain = gain.mul(getLayerEffect("a"));
+  if (getLayerPoints("a").gte(1)) gain = gain.mul(getLayerEffect("a"));
   if (hasUpgrade("a", 11)) gain = gain.mul(upgradeEffect("a", 11));
   if (hasUpgrade("a", 12)) gain = gain.mul(upgradeEffect("a", 12));
   if (hasUpgrade("a", 13)) gain = gain.mul(upgradeEffect("a", 13));
   if (hasUpgrade("a", 22)) gain = gain.mul(upgradeEffect("a", 22));
   if (hasUpgrade("a", 31)) gain = gain.mul(upgradeEffect("a", 31));
   //Beta
-  gain = gain.mul(getLayerEffect("b"));
+  if (getLayerPoints("b").gte(1)) gain = gain.mul(getLayerEffect("b"));
+  //Carbon
+  if (getLayerPoints("c").gte(1)) gain = gain.mul(getLayerEffect("c"));
+  if (hasBuyable("c", 21)) gain = gain.mul(buyableEffect("c", 21));
   return gain;
 }
 
@@ -73,12 +76,20 @@ function fixOldSave(oldVersion) {}
 
 // Set your version in num and name
 let VERSION = {
-  num: "0.51-unstable",
+  num: "0.52-unstable",
   name: "Alpha Phase",
 };
 
 let changelog = `
 <h1>Changelog:</h1><br>
+<h3>v0.52-unstable</h3><br>
+- Prettified layer C.<br>
+- Modified layer C upgrades.<br>
+- Balanced C layer upgrades.<br>
+- Added more functions.<br>
+- Added more A, B & C upgrades/buyables.<br>
+- Modified B Challenge 11.<br>
+- Modified some upgrade/buyable descriptions to make them more understandable/readable.<br><br>
 <h3>v0.51-unstable</h3><br>
 - Prettified Layer B.<br>
 - Balanced Layer B.<br>
@@ -142,6 +153,6 @@ let changelog = `
 <h3>v0.1</h3><br>
 - Project start 17/10/2023.<br>
 - Added alpha layer.<br>
-- Pretified javascripts.<br>
+- Prettified javascripts.<br>
 - Added beta layer, added layer reset (thanks escapee), initial push for people to test this.<br><br>
 `;

@@ -1,7 +1,4 @@
 addLayer("c", {
-  name: "Carbon", // This is optional, only used in a few places, If absent it just uses the layer id.
-  symbol: "C", // This appears on the layer's node. Default is the id with the first letter capitalized
-  position: 1, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
   startData() {
     return {
       unlocked: false,
@@ -14,17 +11,28 @@ addLayer("c", {
   layerShown() {
     return hasMilestone("b", 3);
   },
-  requires: D(Infinity), //D(1e16), // Can be a function that takes requirement increases into account
+  // componentStyles: {
+  //   buyable() {
+  //     return { margin: "0px" };
+  //   },
+  // },
+  color: "gray",
+  name: "Carbon", // This is optional, only used in a few places, If absent it just uses the layer id.
+  symbol: "C", // This appears on the layer's node. Default is the id with the first letter capitalized
+  position: 1, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+  row: 1, // Row the layer is in on the tree (0 is the first row)
   resource: "carbon points", // Name of prestige currency
   baseResource: "alpha points", // Name of resource prestige is based on
   baseAmount() {
     return player["a"].points;
   }, // Get the current amount of baseResource
+  requires: D(1e16), //D(1e16), // Can be a function that takes requirement increases into account
   type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
-  exponent: 0.7, // Prestige currency exponent
+  exponent: 0.8, // Prestige currency exponent
   gainMult() {
     // Calculate the multiplier for main currency from bonuses
     mult = D(1);
+    if (hasBuyable(this.layer, 23)) mult = mult.mul(buyableEffect(this.layer, 23));
     return mult;
   },
   gainExp() {
@@ -40,7 +48,6 @@ addLayer("c", {
     if (getLayerSoftcapAble(this.layer, 2)) power = power.pow(1.3);
     return power;
   },
-  row: 1, // Row the layer is in on the tree (0 is the first row)
   hotkeys: [
     {
       key: "c",
@@ -57,12 +64,20 @@ addLayer("c", {
         return getLayerSoftcapAble(this.layer);
       },
       body() {
-        let softcapText = getLayerSoftcapAble(this.layer) || hasUpgrade("b", 21) ? `(Softcapped^1 gain at: ${format(getLayerSoftcap(this.layer))})<br>` : "";
+        let softcapText = getLayerSoftcapAble(this.layer) ? `(Softcapped^1 gain at: ${format(getLayerSoftcap(this.layer))})<br>` : "";
         let softcapText2 = getLayerSoftcapAble(this.layer, 2) ? `(Softcapped^2 gain at: ${format(getLayerSoftcap(this.layer, 2))})<br>` : "";
         let stext = softcapText + softcapText2;
         return `${stext}`;
       },
     },
+  },
+  effect() {
+    let value = player[this.layer].points.add(1).tetrate(0.12);
+    return value;
+  },
+  effectDescription() {
+    let text = `they multiply points by x${format(getLayerEffect(this.layer))}`;
+    return text;
   },
   prestigeButtonText() {
     let nextGain = D(tmp[this.layer].nextAt);
@@ -90,19 +105,18 @@ addLayer("c", {
     // Stage 5, add back in the specific subfeatures you saved earlier
     player[this.layer].upgrades.push(...keptUpgrades);
   },
-  color: "purple",
   milestones: {
     0: {
-      requirementDescription: "1000 Charlie points.",
-      done() {
-        return player[this.layer].points.gte(1000);
-      },
-      effectDescription() {
-        let text = `Unlock next row of C layer upgrades, and an extra colum of upgrades for A & B layers.<br>(Upgrades not yet implemented)`;
+      requirementDescription() {
+        let text = `100 ${getLayerName(this.layer)} points.`;
         return text;
       },
-      unlocked() {
-        return hasBuyable(this.layer, 13);
+      done() {
+        return getLayerPoints(this.layer).gte(100);
+      },
+      effectDescription() {
+        let text = `Add a 3rd row Alpha upgrade, unlock the 4th column of B upgrades & unlock the next row of Carbon buyables.`;
+        return text;
       },
     },
   },
@@ -110,41 +124,50 @@ addLayer("c", {
     11: {
       cost(x) {
         let current = x.add(1);
-        let cost = D(50).mul(current);
+        let cost = D(7.5).mul(current);
         return cost;
       },
-      title: "B: Depowerer II",
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //title: "B: Depowerer II",
       display() {
-        return `Divide Vitamin B I softcap power by bought amount + 1<br>
+        return `Divide ${getUpgradeName("b", 33)} Softcap^1 power by (bought amount+1)tetrate(0.1)<br>
         Cost: ${format(getBuyableCost(this.layer, this.id))}
         Effect: /${format(buyableEffect(this.layer, this.id))}
-        Bought: ${getBuyableAmount(this.layer, this.id)}/99`;
+        Bought: ${getBuyableAmount(this.layer, this.id)}/${this.purchaseLimit()}
+        `;
       },
       canAfford() {
         return player[this.layer].points.gte(this.cost());
       },
       buy() {
-        player[this.layer].points = player[this.layer].points.sub(this.cost());
+        setLayerPoints(this.layer, getLayerPoints(this.layer).sub(this.cost()));
         setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1));
       },
       effect(x) {
-        let eff = D(1).add(x).min(100);
+        let eff = D(1).add(x).tetrate(0.1).max(1);
         return eff;
       },
-      purchaseLimit: D(99),
+      purchaseLimit() {
+        let limit = D(10);
+        return limit;
+      },
     },
     12: {
       cost(x) {
         let current = x.add(1);
-        let cost = D(75).mul(current);
+        let cost = D(15).mul(current);
         return cost;
       },
-      title: "B: Uncapper III",
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //title: "B: Uncapper III",
       display() {
-        return `Multiply Vitamin B I softcap start by bought amount + 1<br>
+        return `Every bought amount adds +1 to ${getUpgradeName("b", 33)} Softcap^1 start.<br>
         Cost: ${format(getBuyableCost(this.layer, this.id))}
-        Effect: x${format(buyableEffect(this.layer, this.id))}
-        Bought: ${getBuyableAmount(this.layer, this.id)}`;
+        Effect: +${format(buyableEffect(this.layer, this.id))} ${buyableEffect(this.layer, this.id).gte(10) ? `(Capped)` : ``}
+        Bought: ${getBuyableAmount(this.layer, this.id)}/${this.purchaseLimit()}
+        `;
       },
       canAfford() {
         return player[this.layer].points.gte(this.cost());
@@ -154,22 +177,28 @@ addLayer("c", {
         setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1));
       },
       effect(x) {
-        let eff = D(1).add(x);
+        let eff = D(x);
         return eff;
+      },
+      purchaseLimit() {
+        let limit = D(10);
+        return limit;
       },
     },
     13: {
       cost(x) {
         let current = x.add(1);
-        let cost = D(100).mul(current);
+        let cost = D(30).mul(current);
         return cost;
       },
-      title: "A: Empowerer I",
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //title: "A: Empowerer I",
       display() {
-        return `Raise Additive I by 0.1 per amount bought.<br>
+        return `Raise ${getUpgradeName("a", 13)} by 0.1 per amount bought.<br>
         Cost: ${format(getBuyableCost(this.layer, this.id))}
         Effect: ^${format(buyableEffect(this.layer, this.id))}
-        Bought: ${getBuyableAmount(this.layer, this.id)}/5
+        Bought: ${getBuyableAmount(this.layer, this.id)}/${this.purchaseLimit()}
         `;
       },
       canAfford() {
@@ -184,7 +213,106 @@ addLayer("c", {
         let eff = D(1).add(bought.div(10));
         return eff;
       },
-      purchaseLimit: D(5),
+      purchaseLimit() {
+        let limit = D(1);
+        return limit;
+      },
+    },
+    21: {
+      cost(x) {
+        let current = x.add(1);
+        let cost = D(60).mul(current);
+        return cost;
+      },
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //title: "A: Empowerer I",
+      display() {
+        return `Multiply points by effect.<br>Effect is multiplied x2 every time its bought.<br>
+        Cost: ${format(getBuyableCost(this.layer, this.id))}
+        Effect: x${format(buyableEffect(this.layer, this.id))}
+        Bought: ${format(getBuyableAmount(this.layer, this.id))}
+        `;
+      },
+      canAfford() {
+        return player[this.layer].points.gte(this.cost());
+      },
+      buy() {
+        player[this.layer].points = player[this.layer].points.sub(this.cost());
+        setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1));
+      },
+      effect(x) {
+        let bought = x;
+        let number = D(2);
+        let eff = number.pow(bought.trunc());
+        return eff;
+      },
+    },
+    22: {
+      cost(x) {
+        let current = x.add(1);
+        let cost = D(120).mul(current);
+        return cost;
+      },
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //title: "A: Empowerer I",
+      display() {
+        return `Every amount bought generates 0.01% of Beta points (Capped at 100%).<br>
+        Cost: ${format(getBuyableCost(this.layer, this.id))}
+        Effect: ${format(buyableEffect(this.layer, this.id))}% ${this.effect().gte(100) ? `(Capped)` : ""}
+        Bought: ${format(getBuyableAmount(this.layer, this.id))}/${format(this.purchaseLimit(), 2, true)}
+        `;
+      },
+      canAfford() {
+        return player[this.layer].points.gte(this.cost());
+      },
+      buy() {
+        player[this.layer].points = player[this.layer].points.sub(this.cost());
+        setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1));
+      },
+      effect(x) {
+        let bought = x;
+        let eff = bought.mul(0.01);
+        return eff;
+      },
+      purchaseLimit() {
+        let limit = D(1e4);
+        return limit;
+      },
+    },
+    23: {
+      cost(x) {
+        let current = x.add(1);
+        let cost = D(240).mul(current);
+        return cost;
+      },
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //title: "A: Empowerer I",
+      display() {
+        return `Every amount bought multiplies Carbon point gain by 0.01.<br>
+        Cost: ${format(getBuyableCost(this.layer, this.id))}
+        Effect: x${format(buyableEffect(this.layer, this.id))}
+        Bought: ${format(getBuyableAmount(this.layer, this.id))}
+        `;
+      },
+      canAfford() {
+        return player[this.layer].points.gte(this.cost());
+      },
+      buy() {
+        player[this.layer].points = player[this.layer].points.sub(this.cost());
+        setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1));
+      },
+      effect(x) {
+        let bought = x;
+        let eff = bought.mul(0.01).add(1);
+        return eff;
+      },
+      purchaseLimit() {
+        let limit = D(1e4);
+        return limit;
+      },
     },
   },
 });

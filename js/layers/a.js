@@ -33,7 +33,7 @@ addLayer("a", {
   requires() {
     let value = D(10);
     let nerf = D(1);
-    let bChallenge1 = D(challengeCompletions("b", 11)).mul(0.1);
+    let bChallenge1 = D(challengeCompletions("b", 11)).mul(challengeCompletions("b", 11) < 5 ? 0.1 : 0.15);
     nerf = nerf.add(bChallenge1);
     if (inChallenge("b", 11)) value = value.pow(nerf);
     return value;
@@ -117,7 +117,7 @@ addLayer("a", {
     if (hasUpgrade("b", 12)) value = value.add(upgradeEffect("b", 12));
     if (hasUpgrade("b", 13)) value = value.mul(upgradeEffect("b", 13));
     if (!hasUpgrade("b", 12)) value = false;
-    if (inChallenge("b", 11)) return false;
+    if (inChallenge("b", 11) && !hasUpgrade(this.layer, 33)) return false;
     return value;
   },
   //Code by escapee from The Modding Tree discord https://discord.com/channels/762036407719428096/762071767346839573/1163891655410200689
@@ -127,7 +127,7 @@ addLayer("a", {
 
     // Stage 2, track which specific subfeatures you want to keep, e.g. Upgrade 11, Challenge 32, Buyable 12
     let keptUpgrades = [];
-    // if (hasUpgrade(this.layer, 33)) keptUpgrades.push("Buyable", 33);
+    if (hasUpgrade(this.layer, 33)) keptUpgrades.push("Buyable", 33);
 
     // Stage 3, track which main features you want to keep - all upgrades, total points, specific toggles, etc.
     let keep = [];
@@ -195,21 +195,23 @@ addLayer("a", {
       }, //"Point: Doubler",
       description() {
         let text = "Doubles your point gain.";
-        if (inChallenge("b", 11)) text = `${getDisabledByChallenge("b", 11)}`;
+        if (inChallenge("b", 11) && !hasUpgrade("b", 14)) text = `${getDisabledByChallenge("b", 11)}`;
         return text;
       },
       cost() {
         let value = D(5);
-        if (inChallenge("b", 11)) value = D(Infinity);
+        if (inChallenge("b", 11) && !hasUpgrade("b", 14)) value = D(Infinity);
         return value;
       },
       effect() {
         let value = D(2);
-        if (inChallenge("b", 11)) value = D(1);
+        if (hasUpgrade("b", 14)) value = value.pow(2);
+        if (inChallenge("b", 11) && !hasUpgrade("b", 14)) value = D(1);
+        if (inChallenge("b", 11) && hasUpgrade("b", 14)) value = value.pow(0.5);
         return value;
       },
       effectDisplay() {
-        return `x${upgradeEffect(this.layer, this.id)}`;
+        return `x${format(upgradeEffect(this.layer, this.id))}`;
       },
     },
     12: {
@@ -218,28 +220,30 @@ addLayer("a", {
       }, //"Point: Tripler",
       description() {
         let text = "Triples your point gain.";
-        if (inChallenge("b", 11)) text = `${getDisabledByChallenge("b", 11)}`;
+        if (inChallenge("b", 11) && !hasUpgrade("b", 24)) text = `${getDisabledByChallenge("b", 11)}`;
         return text;
       },
       cost() {
         let value = D(10);
-        if (inChallenge("b", 11)) value = D(Infinity);
+        if (inChallenge("b", 11) && !hasUpgrade("b", 24)) value = D(Infinity);
         return value;
       },
       effect() {
         let value = D(3);
-        if (inChallenge("b", 11)) value = D(1);
+        if (hasUpgrade("b", 24)) value = value.pow(2);
+        if (inChallenge("b", 11) && !hasUpgrade("b", 24)) value = D(1);
+        if (inChallenge("b", 11) && hasUpgrade("b", 24)) value = value.pow(0.5);
         return value;
       },
       effectDisplay() {
-        return `x${upgradeEffect(this.layer, this.id)}`;
+        return `x${format(upgradeEffect(this.layer, this.id))}`;
       },
     },
     13: {
       title() {
         return getUpgradeName(this.layer, this.id);
       }, //"A: Additive I",
-      description: "Each total Alpha point multiplies point gain by 0.1",
+      description: "Each total Alpha point multiplies point gain by + x0.1",
       cost: D(20),
       softcaps() {
         softcapsObj = {
@@ -259,17 +263,10 @@ addLayer("a", {
       effect() {
         let value = D(1);
         if (hasUpgrade("a", 21)) setUpgradeSoftcapPower(this.layer, this.id, 1, getUpgradeSoftcapPower(this.layer, this.id, 1).mul(upgradeEffect(this.layer, 21)));
-        if (hasUpgrade("a", 23))
-          setUpgradeSoftcap(
-            this.layer,
-            this.id,
-            1,
-            getUpgradeSoftcap(this.layer, this.id, 1)
-              .add(upgradeEffect("a", 23))
-              .mul(challengeCompletions("b", 11) > 0 ? challengeEffect("b", 11) : 1)
-          );
+        if (hasUpgrade("a", 23)) setUpgradeSoftcap(this.layer, this.id, 1, getUpgradeSoftcap(this.layer, this.id, 1).add(upgradeEffect("a", 23)));
+        if (challengeCompletions("b", 11) > 0) setUpgradeSoftcap(this.layer, this.id, 1, getUpgradeSoftcap(this.layer, this.id, 1).mul(challengeEffect("b", 11)));
         value = value.add(player[this.layer].total.mul(0.1));
-        if (getBuyableAmount("c", 13).gt(0)) value = value.pow(buyableEffect("c", 13));
+        if (getBuyableAmount("c", 13).gte(1)) value = value.pow(buyableEffect("c", 13));
         value = softcap(value, getUpgradeSoftcap(this.layer, this.id, 1), getUpgradeSoftcapPower(this.layer, this.id, 1));
         if (value.gte(getUpgradeSoftcap(this.layer, this.id, 2))) value = softcap(value, getUpgradeSoftcap(this.layer, this.id, 2), getUpgradeSoftcapPower(this.layer, this.id, 2));
         if (value.gte(getUpgradeSoftcap(this.layer, this.id, 3))) value = softcap(value, getUpgradeSoftcap(this.layer, this.id, 3), getUpgradeSoftcapPower(this.layer, this.id, 3));
@@ -344,12 +341,12 @@ addLayer("a", {
       }, //"Point: Quadrupler",
       description() {
         let text = "Quadruples your point gain";
-        if (inChallenge("b", 11)) text = `${getDisabledByChallenge("b", 11)}`;
+        if (inChallenge("b", 11) && !hasUpgrade("b", 34)) text = `${getDisabledByChallenge("b", 11)}`;
         return text;
       },
       cost() {
         let value = D(2e3);
-        if (inChallenge("b", 11)) value = D(Infinity);
+        if (inChallenge("b", 11) && !hasUpgrade("b", 34)) value = D(Infinity);
         return value;
       },
       unlocked() {
@@ -357,11 +354,13 @@ addLayer("a", {
       },
       effect() {
         let value = D(4);
-        if (inChallenge("b", 11)) value = D(1);
+        if (hasUpgrade("b", 34)) value = value.pow(2);
+        if (inChallenge("b", 11) && !hasUpgrade("b", 34)) value = D(1);
+        if (inChallenge("b", 11) && hasUpgrade("b", 34)) value = value.pow(0.5);
         return value;
       },
       effectDisplay() {
-        return `x${upgradeEffect(this.layer, this.id)}`;
+        return `x${format(upgradeEffect(this.layer, this.id))}`;
       },
     },
     23: {
@@ -412,7 +411,7 @@ addLayer("a", {
         return value;
       },
       effectDisplay() {
-        return `x${upgradeEffect(this.layer, this.id)}`;
+        return `x${format(upgradeEffect(this.layer, this.id))}`;
       },
     },
     32: {
@@ -444,6 +443,22 @@ addLayer("a", {
       tooltip() {
         let text = `Formula: (TotalAP/${format(this.cost())})tetrate(0.1)`;
         return text;
+      },
+    },
+    33: {
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      },
+      description() {
+        let text = `(Permanent Upgrade)<br>Passive Alpha Point generation is re-enabled on ${getChallengeName("b", 11)}`;
+        return text;
+      },
+      cost() {
+        let value = D(1e20);
+        return value;
+      },
+      unlocked() {
+        return hasMilestone("c", 0);
       },
     },
   },

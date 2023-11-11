@@ -74,6 +74,7 @@ function gridEffect(layer, id) {
   return gridRun(layer, "getEffect", player[layer].grid[id], id);
 }
 
+//Custom functions
 function D(number) {
   return new Decimal(number);
 }
@@ -150,6 +151,10 @@ function getLayerEffect(layer) {
 
 function getLayerPoints(layer) {
   return D(player[layer].points);
+}
+
+function setLayerPoints(layer, points) {
+  return (player[layer].points = D(points));
 }
 
 function getLayerBest(Layer) {

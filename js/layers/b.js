@@ -25,6 +25,7 @@ addLayer("b", {
     },
   },
   color: "orange",
+  branches: ["c"],
   name: "Beta", // This is optional, only used in a few places, If absent it just uses the layer id.
   symbol: "B", // This appears on the layer's node. Default is the id with the first letter capitalized
   position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
@@ -77,7 +78,7 @@ addLayer("b", {
     },
   },
   effect() {
-    let value = player[this.layer].points.add(1).tetrate(0.1);
+    let value = player[this.layer].points.add(1).tetrate(0.11);
     return value;
   },
   effectDescription() {
@@ -102,6 +103,12 @@ addLayer("b", {
     Next at: ${format(nextGain)} alpha points.
     ${capText}<br>
     `;
+  },
+  passiveGeneration() {
+    let value = D(0);
+    if (!hasBuyable("c", 22)) return false;
+    if (hasBuyable("c", 22)) value = value.add(buyableEffect("c", 22).div(100));
+    return value;
   },
   //Code by escapee from The Modding Tree discord https://discord.com/channels/762036407719428096/762071767346839573/1163891655410200689
   doReset(resettingLayer) {
@@ -175,10 +182,12 @@ addLayer("b", {
       }, //`B: Challenge I<br>A: Knucle Punch`,
       fullDisplay() {
         let chalGoal = D(challengeCompletions("b", 11)).add(1);
-        let goalText = D(2000).mul(chalGoal);
+        let goalText = D(2000)
+          .mul(chalGoal)
+          .mul(challengeCompletions(this.layer, this.id) >= 5 ? 10 : 1);
         let chalEffect = challengeEffect("b", 11);
         let debuff = D(1);
-        let BChal1Comps = D(challengeCompletions("b", 11)).mul(0.1);
+        let BChal1Comps = D(challengeCompletions("b", 11)).mul(challengeCompletions(this.layer, this.id) < 5 ? 0.1 : 0.15);
         debuff = debuff.add(BChal1Comps);
         let soft = D(1).add(D(challengeCompletions("b", 11)));
         return `
@@ -186,14 +195,14 @@ addLayer("b", {
         Upgrades that are disabled cannot be bought.<br>
         Alpha softcap cannot go beyond 30000 (Anything before this challenge cant affect it).<br>
         Alpha passive generation is Disabled by ${getChallengeName(this.layer, this.id)}.<br>
-        Alpha point requirement is exponentiated by 0.1 per completion.<br>
-        1st reward effect while in challenge is x1<br><br>
+        Alpha point requirement is exponentiated by ^0.1 per completion (By ^0.15 at 5 completions).<br>
+        1st reward effect while in challenge is 50% less effective.<br><br>
         -Reward: Each completion multiplies ${getUpgradeName("a", 13)} softcap start by completions+1.<br>
         Unlock 3rd row of Beta upgrades at 1st completion.<br>
         Alpha point gain softcap is multiplied by completions+1<br><br>
-        -Goal is multiplied by completions+1.<br>
+        -Goal is multiplied by completions+1 (Also by *10 at 5 completions).<br>
         Goal: ${format(goalText)} Alpha Points.<br>
-        Completions: ${challengeCompletions("b", 11)}/10<br>
+        Completions: ${challengeCompletions("b", 11)}/9<br>
         Effects:<br>
         x${format(chalEffect)} to ${getUpgradeName("a", 13)} Softcap^1 start.<br>
         x${format(soft)} to Alpha point gain Softcap^1.<br>
@@ -203,7 +212,9 @@ addLayer("b", {
       canComplete: function () {
         let chalGoal = D(challengeCompletions("b", 11)).add(1);
         let value = player.a.points;
-        let goal = D(2000).mul(chalGoal);
+        let goal = D(2000)
+          .mul(chalGoal)
+          .mul(challengeCompletions(this.layer, this.id) >= 5 ? 10 : 1);
         return value.gte(goal);
       },
       // goal() {
@@ -219,7 +230,7 @@ addLayer("b", {
       rewardEffect() {
         let value = D(1);
         value = value.add(challengeCompletions(this.layer, this.id));
-        if (inChallenge("b", 11)) value = D(1);
+        if (inChallenge("b", 11)) value = value.pow(0.5);
         return value;
       },
       unlocked() {
@@ -233,7 +244,7 @@ addLayer("b", {
         return getUpgradeName(this.layer, this.id);
       }, //"A: Additive II",
       description() {
-        let text = "Each total Beta point multiplies Alpha point gain by 1";
+        let text = "Each total Beta point multiplies Alpha point gain by + x1";
         if (inChallenge("b", 11)) text = `${getDisabledByChallenge("b", 11)}`;
         return text;
       },
@@ -333,6 +344,19 @@ addLayer("b", {
         return text;
       },
     },
+    14: {
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //"B: Challenger I",
+      description() {
+        let text = `${getUpgradeName("a", 11)} is exponentiated by ^2 & while in ${getChallengeName(this.layer, 11)} you can buy it with its effect is exponentiated by ^0.5.`;
+        return text;
+      },
+      cost: D(5e5),
+      unlocked() {
+        return hasMilestone("c", 0);
+      },
+    },
     21: {
       title() {
         return getUpgradeName(this.layer, this.id);
@@ -359,6 +383,7 @@ addLayer("b", {
       },
       tooltip() {
         let text = `Formula: (BetaTP+1)log(20)`;
+        return text;
       },
     },
     22: {
@@ -390,6 +415,19 @@ addLayer("b", {
       cost: D(1000),
       unlocked() {
         return hasMilestone("b", 1);
+      },
+    },
+    24: {
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //"B: Challenger I",
+      description() {
+        let text = `${getUpgradeName("a", 12)} is exponentiated by ^2 & while in ${getChallengeName(this.layer, 11)} you can buy it with its effect is exponentiated by ^0.5.`;
+        return text;
+      },
+      cost: D(7.5e5),
+      unlocked() {
+        return hasMilestone("c", 0);
       },
     },
     31: {
@@ -462,6 +500,8 @@ addLayer("b", {
       },
       effect() {
         let value = D(1);
+        if (hasBuyable("c", 11)) setUpgradeSoftcapPower(this.layer, this.id, 1, getUpgradeSoftcapPower(this.layer, this.id, 1).mul(buyableEffect("c", 11)));
+        if (hasBuyable("c", 12)) setUpgradeSoftcap(this.layer, this.id, 1, getUpgradeSoftcap(this.layer, this.id, 1).add(buyableEffect("c", 12)));
         value = value.add(player[this.layer].total);
         value = softcap(value, getUpgradeSoftcap(this.layer, this.id, 1), getUpgradeSoftcapPower(this.layer, this.id, 1));
         if (value.gte(getUpgradeSoftcap(this.layer, this.id, 2))) value = softcap(value, getUpgradeSoftcap(this.layer, this.id, 2), getUpgradeSoftcapPower(this.layer, this.id, 2));
@@ -481,7 +521,7 @@ addLayer("b", {
         return text;
       },
       tooltip() {
-        let softcap1Pow = D(0.1).mul(1000);
+        let softcap1Pow = D(0.1).mul(1000).div(buyableEffect("c", 11));
         let softcap2Pow = D(0.1).mul(1000);
         let softcap3Pow = D(0.1).mul(1000);
         let softcap4Pow = D(0.1).mul(1000);
@@ -503,6 +543,19 @@ addLayer("b", {
       },
       unlocked() {
         return hasMilestone("b", 2);
+      },
+    },
+    34: {
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //"B: Challenger I",
+      description() {
+        let text = `${getUpgradeName("a", 22)} is exponentiated by ^2 & while in ${getChallengeName(this.layer, 11)} you can buy it with its effect is exponentiated by ^0.5.`;
+        return text;
+      },
+      cost: D(1e6),
+      unlocked() {
+        return hasMilestone("c", 0);
       },
     },
   },
