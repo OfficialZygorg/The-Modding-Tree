@@ -122,19 +122,32 @@ function getDisabledByChallenge(layer, id) {
 }
 
 function getUpgradeSoftcap(layer, id, softcapID) {
-  return D(tmp[layer].upgrades[id].softcaps["softcap" + softcapID]);
+  return D(tmp[layer].upgrades[id].softcaps["softcap" + softcapID]());
 }
 
-function setUpgradeSoftcap(layer, id, softcapID, value) {
-  return (tmp[layer].upgrades[id].softcaps["softcap" + softcapID] = D(value));
+function getUpgradeSoftcapable(layer, id, softcapID) {
+  return tmp[layer].upgrades[id].effect.gte(tmp[layer].upgrades[id].softcaps["softcap" + softcapID]());
 }
+
+// function setUpgradeSoftcap(layer, id, softcapID, value) {
+//   return (tmp[layer].upgrades[id].softcaps["softcap" + softcapID] = D(value));
+// }
 
 function getUpgradeSoftcapPower(layer, id, powerID) {
-  return D(tmp[layer].upgrades[id].softcaps["power" + powerID]);
+  return D(tmp[layer].upgrades[id].softcaps["power" + powerID]());
 }
 
-function setUpgradeSoftcapPower(layer, id, powerID, value) {
-  return (tmp[layer].upgrades[id].softcaps["power" + powerID] = D(value));
+// function setUpgradeSoftcapPower(layer, id, powerID, value) {
+//   return (tmp[layer].upgrades[id].softcaps["power" + powerID] = D(value));
+// }
+
+function getUpgradeBoost(layer, id, boostID) {
+  return D(tmp[layer].upgrades[id].boosts["boost" + boostID]());
+}
+
+function getUpgradeBoosteable(layer, id, softcapID) {
+  let softcapIDNext = softcapID + 1;
+  return D(tmp[layer].upgrades[id].softcaps["softcap" + softcapID]()).gte(D(tmp[layer].upgrades[id].softcaps["softcap" + softcapIDNext]()).mul(2));
 }
 
 function getLayerResetGain(layer) {
@@ -163,4 +176,19 @@ function getLayerBest(Layer) {
 
 function hasLayerUnlocked(layer) {
   return player[layer].unlocked;
+}
+
+function calcPercentDiff(value1, value2) {
+  let A = D(value1);
+  let B = D(value2);
+  return D(A.div(B)).mul(100);
+}
+
+function calcRangePercent(value, min, max) {
+  let valueIN = D(value);
+  let minValue = D(min);
+  let maxValue = D(max);
+  result = D(valueIN.sub(minValue).mul(100)).div(maxValue.sub(minValue));
+  if (result.lt(0)) result = result.neg();
+  return result;
 }

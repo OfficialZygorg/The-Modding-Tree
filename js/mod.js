@@ -44,6 +44,7 @@ function getPointGen() {
   //Carbon
   if (getLayerPoints("c").gte(1)) gain = gain.mul(getLayerEffect("c"));
   if (hasBuyable("c", 21)) gain = gain.mul(buyableEffect("c", 21));
+  if (hasChallenge("c", 11)) gain = gain.mul(challengeEffect("c", 11));
   return gain;
 }
 
@@ -76,12 +77,18 @@ function fixOldSave(oldVersion) {}
 
 // Set your version in num and name
 let VERSION = {
-  num: "0.52-unstable",
+  num: "0.53-unstable",
   name: "Alpha Phase",
 };
 
 let changelog = `
 <h1>Changelog:</h1><br>
+<h3>v0.53-unstable</h3><br>
+- Added more functions.<br>
+- Modified heavily upgrades A13, B11, B33.<br>
+- Prepping for next layer.<br>
+- Buffed some C layer buyables & added a C layer buyable.<br>
+- Added a C layer challenge (Next layer unlock reward not avaiable).<br><br>
 <h3>v0.52-unstable</h3><br>
 - Prettified layer C.<br>
 - Modified layer C upgrades.<br>

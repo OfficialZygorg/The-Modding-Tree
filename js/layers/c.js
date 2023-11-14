@@ -6,16 +6,17 @@ addLayer("c", {
       best: D(0),
       total: D(0),
       softcap2: D(2500),
+      CCh11BestPoints: D(0),
     };
   },
   layerShown() {
     return hasMilestone("b", 3);
   },
-  // componentStyles: {
-  //   buyable() {
-  //     return { margin: "0px" };
-  //   },
-  // },
+  componentStyles: {
+    challenge() {
+      return { height: "350px", width: "350px", "border-radius": "25px" };
+    },
+  },
   color: "gray",
   name: "Carbon", // This is optional, only used in a few places, If absent it just uses the layer id.
   symbol: "C", // This appears on the layer's node. Default is the id with the first letter capitalized
@@ -41,6 +42,7 @@ addLayer("c", {
   },
   softcap() {
     let value = D(50);
+    if (hasBuyable(this.layer, 14)) value = value.mul(buyableEffect(this.layer, 14));
     return value;
   },
   softcapPower() {
@@ -119,6 +121,77 @@ addLayer("c", {
         return text;
       },
     },
+    1: {
+      requirementDescription() {
+        let text = `250 ${getLayerName(this.layer)} points.`;
+        return text;
+      },
+      done() {
+        return getLayerPoints(this.layer).gte(250);
+      },
+      effectDescription() {
+        let text = `Add one 1st row Carbon buyable.`;
+        return text;
+      },
+      unlocked() {
+        return hasMilestone(this.layer, 0);
+      },
+    },
+    2: {
+      requirementDescription() {
+        let text = `500 ${getLayerName(this.layer)} points.`;
+        return text;
+      },
+      done() {
+        return getLayerPoints(this.layer).gte(500);
+      },
+      effectDescription() {
+        let text = `Unlock a Carbon Challenge.`;
+        return text;
+      },
+      unlocked() {
+        return hasMilestone(this.layer, 1);
+      },
+    },
+  },
+  challenges: {
+    11: {
+      name() {
+        let text = `${getLayerName(this.layer)} Challenge ${this.id}`;
+        return text;
+      },
+      fullDisplay() {
+        let goalText = D(1e6);
+        let text = `-On entering: Raise Alpha point generation by ^0.1, then tetrate it by 0.01.<br>
+        Alpha layer Softcapped^1 is raised by ^0.5.<br>
+        -Reward: Multiply points by (bestPointsInChallenge)pow(0.1)tetrate(0.01) & unlock the next layer.<br><br>
+        Goal: ${format(goalText)} Alpha points.<br>
+        Completions ${challengeCompletions(this.layer, this.id)}/1<br>
+        Effect: x${format(challengeEffect(this.layer, this.id))}<br>
+        Best points in challenge: ${format(player[this.layer].CCh11BestPoints)}
+        `;
+        return text;
+      },
+      canComplete() {
+        let goal = D(1e6);
+        let value = player.a.points;
+        return value.gte(goal);
+      },
+      completionLimit() {
+        return D(1);
+      },
+      layer() {
+        return player.a.points;
+      },
+      rewardEffect() {
+        if (player.points.gte(player.c.CCh11BestPoints) && inChallenge(this.layer, this.id)) player.c.CCh11BestPoints = D(player.points);
+        let value = player.c.CCh11BestPoints.pow(0.5).tetrate(0.01).max(1);
+        return value;
+      },
+      unlocked() {
+        return hasMilestone(this.layer, 2);
+      },
+    },
   },
   buyables: {
     11: {
@@ -195,7 +268,7 @@ addLayer("c", {
         return getUpgradeName(this.layer, this.id);
       }, //title: "A: Empowerer I",
       display() {
-        return `Raise ${getUpgradeName("a", 13)} by 0.1 per amount bought.<br>
+        return `Raise ${getUpgradeName("a", 13)} by +^0.1 per amount bought.<br>
         Cost: ${format(getBuyableCost(this.layer, this.id))}
         Effect: ^${format(buyableEffect(this.layer, this.id))}
         Bought: ${getBuyableAmount(this.layer, this.id)}/${this.purchaseLimit()}
@@ -216,6 +289,39 @@ addLayer("c", {
       purchaseLimit() {
         let limit = D(1);
         return limit;
+      },
+    },
+    14: {
+      cost(x) {
+        let current = x.add(1);
+        let cost = D(60).mul(current);
+        return cost;
+      },
+      title() {
+        return getUpgradeName(this.layer, this.id);
+      }, //title: "A: Empowerer I",
+      display() {
+        return `Multiply Carbon Softcap^1 by effect.<br>Effect is multiplied x2 every time its bought.<br>
+        Cost: ${format(getBuyableCost(this.layer, this.id))}
+        Effect: x${format(buyableEffect(this.layer, this.id))}
+        Bought: ${format(getBuyableAmount(this.layer, this.id))}
+        `;
+      },
+      canAfford() {
+        return player[this.layer].points.gte(this.cost());
+      },
+      buy() {
+        player[this.layer].points = player[this.layer].points.sub(this.cost());
+        setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1));
+      },
+      effect(x) {
+        let bought = x;
+        let number = D(2);
+        let eff = number.pow(bought.trunc());
+        return eff;
+      },
+      unlocked() {
+        return hasMilestone(this.layer, 1);
       },
     },
     21: {
@@ -247,6 +353,9 @@ addLayer("c", {
         let eff = number.pow(bought.trunc());
         return eff;
       },
+      unlocked() {
+        return hasMilestone(this.layer, 0);
+      },
     },
     22: {
       cost(x) {
@@ -258,7 +367,7 @@ addLayer("c", {
         return getUpgradeName(this.layer, this.id);
       }, //title: "A: Empowerer I",
       display() {
-        return `Every amount bought generates 0.01% of Beta points (Capped at 100%).<br>
+        return `Every amount bought generates 0.1% of Beta points (Capped at 100%).<br>
         Cost: ${format(getBuyableCost(this.layer, this.id))}
         Effect: ${format(buyableEffect(this.layer, this.id))}% ${this.effect().gte(100) ? `(Capped)` : ""}
         Bought: ${format(getBuyableAmount(this.layer, this.id))}/${format(this.purchaseLimit(), 2, true)}
@@ -273,12 +382,15 @@ addLayer("c", {
       },
       effect(x) {
         let bought = x;
-        let eff = bought.mul(0.01);
+        let eff = bought.mul(0.1);
         return eff;
       },
       purchaseLimit() {
-        let limit = D(1e4);
+        let limit = D(1e3);
         return limit;
+      },
+      unlocked() {
+        return hasMilestone(this.layer, 0);
       },
     },
     23: {
@@ -291,7 +403,7 @@ addLayer("c", {
         return getUpgradeName(this.layer, this.id);
       }, //title: "A: Empowerer I",
       display() {
-        return `Every amount bought multiplies Carbon point gain by 0.01.<br>
+        return `Every amount bought multiplies Carbon point gain by +x2.<br>
         Cost: ${format(getBuyableCost(this.layer, this.id))}
         Effect: x${format(buyableEffect(this.layer, this.id))}
         Bought: ${format(getBuyableAmount(this.layer, this.id))}
@@ -306,12 +418,15 @@ addLayer("c", {
       },
       effect(x) {
         let bought = x;
-        let eff = bought.mul(0.01).add(1);
+        let eff = bought.mul(2).max(1);
         return eff;
       },
       purchaseLimit() {
         let limit = D(1e4);
         return limit;
+      },
+      unlocked() {
+        return hasMilestone(this.layer, 0);
       },
     },
   },

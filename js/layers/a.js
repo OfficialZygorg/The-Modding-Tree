@@ -39,7 +39,10 @@ addLayer("a", {
     return value;
   }, // Can be a function that takes requirement increases into account
   type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
-  exponent: 0.9, // Prestige currency exponent
+  exponent() {
+    let value = D(0.9);
+    return value;
+  }, // Prestige currency exponent
   gainMult() {
     // Calculate the multiplier for main currency from bonuses
     let mult = D(1);
@@ -51,6 +54,7 @@ addLayer("a", {
       mult = mult.mul(value);
     }
     if (hasUpgrade("b", 21)) mult = mult.pow(upgradeEffect("b", 21));
+    if (inChallenge("c", 11)) mult = mult.pow(0.1).tetrate(0.01);
     return mult;
   },
   gainExp() {
@@ -64,8 +68,7 @@ addLayer("a", {
     if (challengeCompletions("b", 11) > 0) value = value.mul(bChallenge1);
     if (inChallenge("b", 11)) return D(30000).mul(bChallenge1);
     if (hasUpgrade("b", 31)) value = value.mul(upgradeEffect("b", 31));
-    if (value.gte(getLayerSoftcap(this.layer, 2))) setLayerSoftcap(value, this.layer, 2);
-    if (getLayerSoftcap(this.layer, 3).gte(getLayerSoftcap(this.layer, 2))) setLayerSoftcap(getLayerSoftcap(this.layer, 2), this.layer, 3);
+    if (inChallenge("c", 11)) value = value.pow(0.5);
     return value;
   },
   softcapPower() {
@@ -78,7 +81,7 @@ addLayer("a", {
     lore: {
       title: "Softcaps",
       unlocked() {
-        return getLayerSoftcapAble(this.layer);
+        return getLayerSoftcapAble(this.layer) || inChallenge("c", 11);
       },
       body() {
         let softcapText = getLayerSoftcapAble(this.layer) ? `(Softcapped^1 gain at: ${format(getLayerSoftcap(this.layer))})<br>` : "";
@@ -117,7 +120,7 @@ addLayer("a", {
     if (hasUpgrade("b", 12)) value = value.add(upgradeEffect("b", 12));
     if (hasUpgrade("b", 13)) value = value.mul(upgradeEffect("b", 13));
     if (!hasUpgrade("b", 12)) value = false;
-    if (inChallenge("b", 11) && !hasUpgrade(this.layer, 33)) return false;
+    if (inChallenge("b", 11) || (inChallenge("c", 11) && !hasUpgrade(this.layer, 33))) return false;
     return value;
   },
   //Code by escapee from The Modding Tree discord https://discord.com/channels/762036407719428096/762071767346839573/1163891655410200689
@@ -243,29 +246,105 @@ addLayer("a", {
       title() {
         return getUpgradeName(this.layer, this.id);
       }, //"A: Additive I",
-      description: "Each total Alpha point multiplies point gain by + x0.1",
+      description: "Each total Alpha point multiplies point gain by +x0.1",
       cost: D(20),
       softcaps() {
         softcapsObj = {
-          softcap1: D(10),
-          power1: D(0.1),
-          softcap2: D(100),
-          power2: D(0.1),
-          softcap3: D(1e4),
-          power3: D(0.1),
-          softcap4: D(1e8),
-          power4: D(0.1),
-          softcap5: D(1e16),
-          power5: D(0.1),
+          softcap1() {
+            let start = D(10);
+            if (hasUpgrade("a", 23)) start = start.add(upgradeEffect("a", 23));
+            if (challengeCompletions("b", 11) > 0) start = start.mul(challengeEffect("b", 11));
+            return start;
+          },
+          power1() {
+            let power = D(0.1);
+            if (hasUpgrade("a", 21)) power = power.mul(upgradeEffect("a", 21));
+            return power;
+          },
+          softcap2() {
+            let start = D(100);
+            return start;
+          },
+          power2() {
+            let power = D(0.1);
+            return power;
+          },
+          softcap3() {
+            let start = D(1e4);
+            return start;
+          },
+          power3() {
+            let power = D(0.1);
+            return power;
+          },
+          softcap4() {
+            let start = D(1e8);
+            return start;
+          },
+          power4() {
+            let power = D(0.1);
+            return power;
+          },
+          softcap5() {
+            let start = D(1e16);
+            return start;
+          },
+          power5() {
+            let power = D(0.1);
+            return power;
+          },
         };
         return softcapsObj;
       },
+      boosts() {
+        boostsObj = {
+          layer: this.layer,
+          id: this.id,
+          boost1() {
+            if (getUpgradeSoftcap("a", 13, 1).gte(getUpgradeSoftcap(this.layer, this.id, 2).mul(2)))
+              boost = D(1.01)
+                .pow(0.1)
+                .pow(getUpgradeSoftcap(this.layer, this.id, 1).div(getUpgradeSoftcap(this.layer, this.id, 2)))
+                .pow(0.1);
+            else boost = D(1);
+            return boost;
+          },
+          boost2() {
+            if (getUpgradeSoftcap(this.layer, this.id, 2).gte(getUpgradeSoftcap(this.layer, this.id, 3).mul(2)))
+              boost = D(1.01)
+                .pow(0.1)
+                .pow(getUpgradeSoftcap(this.layer, this.id, 2).div(getUpgradeSoftcap(this.layer, this.id, 3)))
+                .pow(0.1);
+            else boost = D(1);
+            return boost;
+          },
+          boost3() {
+            if (getUpgradeSoftcap(this.layer, this.id, 3).gte(getUpgradeSoftcap(this.layer, this.id, 4).mul(2)))
+              boost = D(1.01)
+                .pow(0.1)
+                .pow(getUpgradeSoftcap(this.layer, this.id, 3).div(getUpgradeSoftcap(this.layer, this.id, 4)))
+                .pow(0.1);
+            else boost = D(1);
+            return boost;
+          },
+          boost4() {
+            if (getUpgradeSoftcap(this.layer, this.id, 4).gte(getUpgradeSoftcap(this.layer, this.id, 5).mul(2)))
+              boost = D(1.01)
+                .pow(0.1)
+                .pow(getUpgradeSoftcap(this.layer, this.id, 4).div(getUpgradeSoftcap(this.layer, this.id, 5)))
+                .pow(0.1);
+            else boost = D(1);
+            return boost;
+          },
+        };
+        return boostsObj;
+      },
       effect() {
-        let value = D(1);
-        if (hasUpgrade("a", 21)) setUpgradeSoftcapPower(this.layer, this.id, 1, getUpgradeSoftcapPower(this.layer, this.id, 1).mul(upgradeEffect(this.layer, 21)));
-        if (hasUpgrade("a", 23)) setUpgradeSoftcap(this.layer, this.id, 1, getUpgradeSoftcap(this.layer, this.id, 1).add(upgradeEffect("a", 23)));
-        if (challengeCompletions("b", 11) > 0) setUpgradeSoftcap(this.layer, this.id, 1, getUpgradeSoftcap(this.layer, this.id, 1).mul(challengeEffect("b", 11)));
-        value = value.add(player[this.layer].total.mul(0.1));
+        let value = D(player[this.layer].total).mul(0.1).max(1);
+        if (getUpgradeBoosteable(this.layer, this.id, 1)) value = value.mul(getUpgradeBoost(this.layer, this.id, 1));
+        if (getUpgradeBoosteable(this.layer, this.id, 2)) value = value.mul(getUpgradeBoost(this.layer, this.id, 2));
+        if (getUpgradeBoosteable(this.layer, this.id, 3)) value = value.mul(getUpgradeBoost(this.layer, this.id, 3));
+        if (getUpgradeBoosteable(this.layer, this.id, 4)) value = value.mul(getUpgradeBoost(this.layer, this.id, 4));
         if (getBuyableAmount("c", 13).gte(1)) value = value.pow(buyableEffect("c", 13));
         value = softcap(value, getUpgradeSoftcap(this.layer, this.id, 1), getUpgradeSoftcapPower(this.layer, this.id, 1));
         if (value.gte(getUpgradeSoftcap(this.layer, this.id, 2))) value = softcap(value, getUpgradeSoftcap(this.layer, this.id, 2), getUpgradeSoftcapPower(this.layer, this.id, 2));
@@ -275,33 +354,32 @@ addLayer("a", {
         return value;
       },
       effectDisplay() {
-        let text = `x${format(upgradeEffect(this.layer, this.id))}`;
-        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 1))) text = text + ` (Softcapped^1)`;
-        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 2))) text = text + ` (Softcapped^2)`;
-        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 3))) text = text + ` (Softcapped^3)`;
-        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 4))) text = text + ` (Softcapped^4)`;
-        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 5))) text = text + ` (Softcapped^5)`;
+        let text = `x${format(upgradeEffect(this.layer, this.id))}<br>`;
+        if (getUpgradeSoftcapable(this.layer, this.id, 1)) text = text + `(Softcapped^1)<br>`;
+        if (getUpgradeSoftcapable(this.layer, this.id, 2)) text = text + `(Softcapped^2)<br>`;
+        if (getUpgradeSoftcapable(this.layer, this.id, 3)) text = text + `(Softcapped^3)<br>`;
+        if (getUpgradeSoftcapable(this.layer, this.id, 4)) text = text + `(Softcapped^4)<br>`;
+        if (getUpgradeSoftcapable(this.layer, this.id, 5)) text = text + `(Softcapped^5)`;
         return text;
       },
       tooltip() {
-        let softcap1Pow = D(0.1).mul(1000).div(upgradeEffect(this.layer, 21));
-        let softcap2Pow = D(0.1).mul(1000);
-        let softcap3Pow = D(0.1).mul(1000);
-        let softcap4Pow = D(0.1).mul(1000);
-        let softcap5Pow = D(0.1).mul(1000);
-        let softcapText = upgradeEffect(this.layer, this.id).gte(10) ? `P=Power, S=Start<br>(Power=1% = No Power)<br>` : "";
-        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 1)))
-          softcapText = softcapText + `Softcap^1 P:${format(softcap1Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 1))}`;
-        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 2)))
-          softcapText = softcapText + ` <br>Softcap^2 P:${format(softcap2Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 2))}`;
-        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 3)))
-          softcapText = softcapText + ` <br>Softcap^3 P:${format(softcap3Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 3))}`;
-        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 4)))
-          softcapText = softcapText + ` <br>Softcap^4 P:${format(softcap4Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 4))}`;
-        if (upgradeEffect(this.layer, this.id).gte(getUpgradeSoftcap(this.layer, this.id, 5)))
-          softcapText = softcapText + ` <br>Softcap^5 P:${format(softcap5Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 5))}`;
+        let softcap1Pow = D(100).sub(calcRangePercent(getUpgradeSoftcapPower(this.layer, this.id, 1), D(0.1), 1));
+        let softcap2Pow = D(100).sub(calcRangePercent(getUpgradeSoftcapPower(this.layer, this.id, 2), D(0.1), 1));
+        let softcap3Pow = D(100).sub(calcRangePercent(getUpgradeSoftcapPower(this.layer, this.id, 3), D(0.1), 1));
+        let softcap4Pow = D(100).sub(calcRangePercent(getUpgradeSoftcapPower(this.layer, this.id, 4), D(0.1), 1));
+        let softcap5Pow = D(100).sub(calcRangePercent(getUpgradeSoftcapPower(this.layer, this.id, 5), D(0.1), 1));
+        let softcapText = upgradeEffect(this.layer, this.id).gte(10) ? `P=Power, S=Start, B=Boost<br>` : "";
+        if (getUpgradeBoosteable(this.layer, this.id, 1)) softcapText = softcapText + `Boosted^1 B:x${format(getUpgradeBoost(this.layer, this.id, 1))}<br>`;
+        if (getUpgradeBoosteable(this.layer, this.id, 2)) softcapText = softcapText + `Boosted^2 B:x${format(getUpgradeBoost(this.layer, this.id, 2))}<br>`;
+        if (getUpgradeBoosteable(this.layer, this.id, 3)) softcapText = softcapText + `Boosted^3 B:x${format(getUpgradeBoost(this.layer, this.id, 3))}<br>`;
+        if (getUpgradeBoosteable(this.layer, this.id, 4)) softcapText = softcapText + `Boosted^4 B:x${format(getUpgradeBoost(this.layer, this.id, 4))}<br>`;
+        if (upgradeEffect(this.layer, this.id).gte(10)) softcapText = softcapText + `Softcap^1 P:${format(softcap1Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 1))}`;
+        if (upgradeEffect(this.layer, this.id).gte(100)) softcapText = softcapText + `<br>Softcap^2 P:${format(softcap2Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 2))}`;
+        if (upgradeEffect(this.layer, this.id).gte(1e4)) softcapText = softcapText + `<br>Softcap^3 P:${format(softcap3Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 3))}`;
+        if (upgradeEffect(this.layer, this.id).gte(1e8)) softcapText = softcapText + `<br>Softcap^4 P:${format(softcap4Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 4))}`;
+        if (upgradeEffect(this.layer, this.id).gte(1e16)) softcapText = softcapText + `<br>Softcap^5 P:${format(softcap5Pow)}% S:x${format(getUpgradeSoftcap(this.layer, this.id, 5))}`;
         let formula = `Formula: TotalAP*0.1`;
-        let text = `${formula}<br>${softcapText}`;
+        let text = `${formula}<br>${softcapText}<br>If previous Softcap start => next Softcap start by x2 amount = Effect gets a boost.`;
         return text;
       },
     },
@@ -368,7 +446,7 @@ addLayer("a", {
         return getUpgradeName(this.layer, this.id);
       }, //"A: Uncapper I",
       description() {
-        let text = `Your total Alpha points increments the start of ${getUpgradeName(this.layer, 13)} Softcap^1.`;
+        let text = `Your total Alpha points increments the start of ${getUpgradeName(this.layer, 13)} Softcap^1 by some amount.`;
         return text;
       },
       cost: D(5e3),
@@ -450,7 +528,7 @@ addLayer("a", {
         return getUpgradeName(this.layer, this.id);
       },
       description() {
-        let text = `(Permanent Upgrade)<br>Passive Alpha Point generation is re-enabled on ${getChallengeName("b", 11)}`;
+        let text = `(Permanent Upgrade)<br>Passive Alpha Point generation is re-enabled on challenges.`;
         return text;
       },
       cost() {
